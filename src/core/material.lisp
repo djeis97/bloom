@@ -51,8 +51,8 @@
 (defclass material ()
   ((%id :reader id
         :initarg :id)
-   (%renderer :reader renderer
-              :initarg :renderer)
+   (%render :reader render
+            :initarg :render)
    (%framebuffer :reader framebuffer
                  :initarg :framebuffer)
    (%attachments :reader attachments
@@ -78,17 +78,17 @@
    (%binder :reader binder
             :initarg :binder)))
 
-(defun make-material (definition renderer)
+(defun make-material (definition render)
   (destructuring-bind (&key framebuffer attachments clear-buffers) (target definition)
-    (let* ((game-state (game-state renderer))
-           (shader (or (shader renderer) (shader definition)))
+    (let* ((game-state (game-state render))
+           (shader (or (shader render) (shader definition)))
            (framebuffer (find-framebuffer game-state framebuffer))
            (attachments (framebuffer-attachment-names->points framebuffer attachments))
            (program (shadow:find-program shader))
-           (uniforms (au:plist->hash (uniforms renderer) :test #'eq))
+           (uniforms (au:plist->hash (uniforms render) :test #'eq))
            (material (make-instance 'material
                                     :id (id definition)
-                                    :renderer renderer
+                                    :render render
                                     :framebuffer framebuffer
                                     :attachments attachments
                                     :clear-buffers clear-buffers
@@ -101,14 +101,14 @@
       material)))
 
 (defun make-material-uniform (material name value)
-  (with-slots (%renderer %shader) material
+  (with-slots (%render %shader) material
     (let* ((program (shadow:find-program %shader))
            (type (au:href (shadow:uniforms program) name :type))
            (resolved-type (resolve-uniform-type type)))
       (make-instance 'material-uniform
                      :name name
                      :type type
-                     :value (transform-uniform (game-state %renderer) value resolved-type)
+                     :value (transform-uniform (game-state %render) value resolved-type)
                      :binder (generate-uniform-binder material type)))))
 
 (defun resolve-uniform-type (uniform-type)
@@ -116,13 +116,13 @@
       :sampler
       uniform-type))
 
-(defun resolve-material (material renderer)
+(defun resolve-material (material render)
   (au:do-hash-values (uniform (uniforms material))
     (with-slots (%value %actual-value) uniform
       (setf %actual-value
             (typecase %value
               ((or function symbol)
-               (funcall %value renderer))
+               (funcall %value render))
               (t
                %value))))))
 

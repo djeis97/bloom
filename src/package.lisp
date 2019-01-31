@@ -39,7 +39,6 @@
            #:on-component-update
            #:on-component-render
            #:render
-           #:renderer
            #:rotate
            #:rotate-transform
            #:shader-modified-post-hook
@@ -53,9 +52,6 @@
            #:transform
            #:uniforms
            #:value
-           #:world
-           #:world/cell-count
-           #:world/cell-index
            #:write-shader-buffer))
 
 (defpackage+ #:bloom.shader

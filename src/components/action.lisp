@@ -2,7 +2,7 @@
 
 (define-component action (:after (transform))
   (name nil)
-  (renderer nil)
+  (render nil)
   (elapsed 0)
   (duration 1)
   (finished-p nil)
@@ -60,6 +60,6 @@
 ;;; Component event hooks
 
 (defmethod on-component-attach ((self action))
-  (setf (renderer self) (get-entity-component-by-type (entity self) 'render)
+  (setf (render self) (get-entity-component-by-type (entity self) 'render)
         (attrs self) (au:plist->hash (attrs self) :test #'eq))
   (insert-action self :tail))

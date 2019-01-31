@@ -3,7 +3,7 @@
 ;;; fade
 
 (defmethod on-action-update (action (name (eql 'fade-in)))
-  (setf (value (au:href (uniforms (material (renderer action))) :opacity))
+  (setf (value (au:href (uniforms (material (render action))) :opacity))
         (action-step action)))
 
 (defmethod on-action-finish (action (name (eql 'fade-in)))
@@ -11,7 +11,7 @@
     (replace-action action 'fade-out)))
 
 (defmethod on-action-update (action (name (eql 'fade-out)))
-  (setf (value (au:href (uniforms (material (renderer action))) :opacity))
+  (setf (value (au:href (uniforms (material (render action))) :opacity))
         (- 1 (action-step action))))
 
 (defmethod on-action-finish (action (name (eql 'fade-out)))
@@ -21,7 +21,7 @@
 ;;; rotate
 
 (defmethod on-action-update (action (name (eql 'rotate)))
-  (let* ((transform (transform (renderer action)))
+  (let* ((transform (transform (render action)))
          (attrs (attrs action))
          (angle (or (au:href attrs :angle) (* pi 2)))
          (step (au:map-domain 0 1 0 angle (action-step action))))
@@ -35,7 +35,7 @@
     (replace-action action 'rotate/reverse)))
 
 (defmethod on-action-update (action (name (eql 'rotate/reverse)))
-  (let* ((transform (transform (renderer action)))
+  (let* ((transform (transform (render action)))
          (attrs (attrs action))
          (angle (or (au:href attrs :angle) (* pi 2)))
          (step (- angle (au:map-domain 0 1 0 angle (action-step action)))))
