@@ -61,9 +61,4 @@
 (defpackage+ #:bloom.shader
   (:local-nicknames (#:b #:bloom))
   (:use #:cl)
-  (:inherit #:shadow.vari)
-  (:export #:mesh
-           #:colored
-           #:textured
-           #:sprite
-           #:world))
+  (:inherit #:shadow.vari))

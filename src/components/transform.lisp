@@ -129,17 +129,23 @@
 
 ;;; User API
 
-(defun translate-transform (transform vec &optional replace-p)
-  (with-slots (%current) (translation transform)
-    (m:+ (if replace-p m:+zero-vec3+ %current) vec %current)))
+(defun translate-transform (transform vec &key replace-p instant-p)
+  (with-slots (%current %previous) (translation transform)
+    (m:+ (if replace-p m:+zero-vec3+ %current) vec %current)
+    (when instant-p
+      (m:copy-into %previous %current))))
 
-(defun rotate-transform (transform vec &optional replace-p)
-  (with-slots (%current) (rotation transform)
-    (m:rotate (if replace-p m:+id-quat+ %current) vec %current)))
+(defun rotate-transform (transform vec &key replace-p instant-p)
+  (with-slots (%current %previous) (rotation transform)
+    (m:rotate :local (if replace-p m:+id-quat+ %current) vec %current)
+    (when instant-p
+      (m:copy-into %previous %current))))
 
-(defun scale-transform (transform vec &optional replace-p)
-  (with-slots (%current) (scaling transform)
-    (m:+ (if replace-p m:+zero-vec3+ %current) vec %current)))
+(defun scale-transform (transform vec &key replace-p instant-p)
+  (with-slots (%current %previous) (scaling transform)
+    (m:+ (if replace-p m:+zero-vec3+ %current) vec %current)
+    (when instant-p
+      (m:copy-into %previous %current))))
 
 ;;; Component event hooks
 

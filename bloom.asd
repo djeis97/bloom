@@ -66,6 +66,10 @@
      (:file "prototype")
      (:file "entity")
      (:file "scene")))
+   (:module "shaders"
+    :components
+    ((:file "default")
+     (:file "sprite")))
    (:module "components"
     :components
     ((:file "tag")
@@ -76,10 +80,6 @@
      (:file "action")
      (:file "sprite")
      (:file "render")))
-   (:module "shaders"
-    :components
-    ((:file "default")
-     (:file "sprite")))
    (:module "addons"
     :components
     ((:file "actions")))))

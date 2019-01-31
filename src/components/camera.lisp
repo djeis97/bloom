@@ -39,10 +39,10 @@
                                   (projection camera))))
 
 (defmethod set-camera-projection ((mode (eql :isometric)) camera game-state)
-  (let ((rotation (m:vec3 (- (asin (/ (sqrt 3)))) 0 (/ pi 4))))
-    (set-camera-projection :orthographic camera game-state)
-    (reinitialize-instance (transform camera)
-                           :rotate (m:inverse (m:rotate :local m:+id-quat+ rotation)))))
+  (with-slots (%rotation) (transform camera)
+    (let ((rotation (m:vec3 (- (asin (/ (sqrt 3)))) 0 (/ pi 4))))
+      (set-camera-projection :orthographic camera game-state)
+      (setf (current %rotation) (m:inverse (m:rotate :local m:+id-quat+ rotation))))))
 
 (defun zoom-camera (game-state offset)
   (let ((camera (camera (active-scene game-state))))
@@ -58,5 +58,5 @@
         (transform component) (get-entity-component-by-type (entity component) 'transform))
   (set-camera-projection (mode component) component (game-state component)))
 
-(defmethod on-component-render ((component camera))
+(defmethod on-component-update ((component camera))
   (set-camera-view component))

@@ -50,7 +50,7 @@
 
 (defun draw-sprite (sprite)
   (with-slots (%index %geometry) sprite
-    (shadow:uniform-int :sprite.index %index)
+    (shadow:uniform-int 'bloom.shader:sprite :sprite.index %index)
     (gl:bind-vertex-array %geometry)
     (gl:draw-arrays :points 0 1)
     (gl:bind-vertex-array 0)))

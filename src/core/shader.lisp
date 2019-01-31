@@ -2,11 +2,15 @@
 
 (defvar *shader-definitions* (au:dict #'eq))
 
-(defmacro define-shader (name (&key (version :330) (primitive :triangles)) &body body)
-  `(setf (au:href *shader-definitions* ',name)
-         (lambda ()
-           (shadow:define-shader ,name (:version ,version :primitive ,primitive)
-             ,@body))))
+(defmacro define-shader (name (&key (version :430) (primitive :triangles)) &body body)
+  (let ((shader-name (au:format-symbol :bloom.shader "~a" name)))
+    `(progn
+       (setf (au:href *shader-definitions* ',shader-name)
+             (lambda ()
+               (let ((*package* (find-package :bloom.shader)))
+                 (shadow:define-shader ,shader-name (:version ,version :primitive ,primitive)
+                   ,@body))))
+       (export ',shader-name))))
 
 (defmacro define-shader-struct (name () &body slots)
   `(shadow:define-gpu-struct ,name () ,@slots))

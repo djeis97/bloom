@@ -48,6 +48,6 @@
   (resolve-material (material component) component))
 
 (defmethod on-component-render ((component render))
-  (with-slots (%updated-p %material) component
+  (with-slots (%material) component
     (with-material (%material)
       (funcall (draw-method component)))))
