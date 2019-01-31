@@ -18,8 +18,8 @@
 
 ;;; Component event hooks
 
-(defmethod on-component-create ((component mesh))
-  (with-slots (%game-state %file %index %primitives %instances) component
+(defmethod on-component-create ((self mesh))
+  (with-slots (%game-state %file %index %primitives %instances) self
     (let ((data (cache-lookup %game-state :mesh-data (cons %file %index)
                   (load-mesh (resolve-path :mesh %file) :mesh-index %index))))
       (setf %instances (transform-instances %game-state %instances)

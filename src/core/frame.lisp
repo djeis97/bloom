@@ -13,6 +13,8 @@
    (%delta-buffer :initform 0)
    (%frame-time :reader frame-time
                 :initform 0)
+   (%frame-count :accessor frame-count
+                 :initform 0)
    (%accumulator :initform 0)
    (%alpha :reader alpha
            :initform 0f0)

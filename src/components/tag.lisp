@@ -33,15 +33,15 @@
 
 ;;; Component event hooks
 
-(defmethod on-component-create ((component tag))
-  (symbol-macrolet ((tag-storage (au:href (shared-storage (game-state component)) :tag-data)))
+(defmethod on-component-create ((self tag))
+  (symbol-macrolet ((tag-storage (au:href (shared-storage (game-state self)) :tag-data)))
     (unless tag-storage
       (setf tag-storage (make-instance 'tag-data)))))
 
-(defmethod on-component-attach ((component tag))
-  (let* ((game-state (game-state component))
-         (name (name component))
-         (entity (entity component))
+(defmethod on-component-attach ((self tag))
+  (let* ((game-state (game-state self))
+         (name (name self))
+         (entity (entity self))
          (tag-data (get-tag-data game-state)))
     (let ((existing (nth-value 1 (get-entity-component-by-type entity 'tag))))
       (dolist (x existing)
@@ -50,8 +50,8 @@
           (au:href (entity->tag tag-data) (id entity)) name)
     (on-entity-tag entity name)))
 
-(defmethod on-component-detach ((component tag))
-  (untag-entity (game-state component) (entity component)))
+(defmethod on-component-detach ((self tag))
+  (untag-entity (game-state self) (entity self)))
 
 ;;; Tag-specific event hooks
 

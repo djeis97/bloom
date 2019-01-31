@@ -51,7 +51,7 @@
         (discard)
         color)))
 
-(bloom:define-shader sprite (:version 430 :primitive :points)
+(bloom:define-shader sprite (:primitive :points)
   (:vertex (sprite/v))
   (:geometry (sprite/g))
   (:fragment (sprite/f :vec2)))

@@ -69,7 +69,7 @@
        (when x
          (au:when-let* ((entity (entity x))
                         (component (get-entity-component-by-type entity 'transform)))
-           (au:appendf (au:href types 'transform) (list component)))))
+           (pushnew component (au:href types 'transform)))))
      (root-node scene)))
   (setf (cache-dirty-p (component-data game-state)) nil))
 
@@ -77,7 +77,7 @@
   (let ((types (au:href (components (active-scene (game-state component))) :active-by-type))
         (type (component-type component)))
     (unless (eq type 'transform)
-      (au:appendf (au:href types type) (list component)))))
+      (pushnew component (au:href types type)))))
 
 (defun uncache-component (component)
   (let ((types (au:href (components (active-scene (game-state component))) :active-by-type)))
@@ -100,38 +100,38 @@
 
 ;;; Component event hooks
 
-(defgeneric on-component-create (component)
-  (:method (component))
-  (:method :after (component)
-    (v:trace :bloom.component.create "Created ~a component." (component-type component))))
+(defgeneric on-component-create (self)
+  (:method (self))
+  (:method :after (self)
+    (v:trace :bloom.component.create "Created ~a component." (component-type self))))
 
-(defgeneric on-component-delete (component)
-  (:method (component))
-  (:method :around (component)
-    (au:when-let ((entity (entity component)))
-      (detach-component entity component))
+(defgeneric on-component-delete (self)
+  (:method (self))
+  (:method :around (self)
+    (au:when-let ((entity (entity self)))
+      (detach-component entity self))
     (call-next-method)
-    (v:trace :bloom.component.delete "Deleted ~a component." (component-type component))))
+    (v:trace :bloom.component.delete "Deleted ~a component." (component-type self))))
 
-(defgeneric on-component-attach (component)
-  (:method (component))
-  (:method :after (component)
+(defgeneric on-component-attach (self)
+  (:method (self))
+  (:method :after (self)
     (v:trace :bloom.component.attach "Attached ~a component to entity ~a."
-             (component-type component)
-             (id (entity component)))))
+             (component-type self)
+             (id (entity self)))))
 
-(defgeneric on-component-detach (component)
-  (:method (component))
-  (:method :around (component)
-    (let ((entity (id (entity component))))
+(defgeneric on-component-detach (self)
+  (:method (self))
+  (:method :around (self)
+    (let ((entity (id (entity self))))
       (call-next-method)
-      (setf (entity component) nil)
+      (setf (entity self) nil)
       (v:trace :bloom.component.detach "Detached ~a component from entity ~a."
-               (component-type component)
+               (component-type self)
                entity))))
 
-(defgeneric on-component-update (component)
-  (:method (component)))
+(defgeneric on-component-update (self)
+  (:method (self)))
 
-(defgeneric on-component-render (component)
-  (:method (component)))
+(defgeneric on-component-render (self)
+  (:method (self)))

@@ -49,11 +49,13 @@
   (process-tasks game-state))
 
 (defun render-step (game-state)
-  (with-slots (%running-p %display) game-state
+  (with-slots (%running-p %display %frame-manager) game-state
     (when %running-p
-      (clear-screen %display)
-      (map-components game-state #'on-component-render)
-      (sdl2:gl-swap-window (window %display)))))
+      (when (> (frame-count %frame-manager) (/ (delta %frame-manager)))
+        (clear-screen %display)
+        (map-components game-state #'on-component-render)
+        (sdl2:gl-swap-window (window %display)))
+      (incf (frame-count %frame-manager)))))
 
 (defun step-frame (game-state)
   (with-continue-restart "Bloom"

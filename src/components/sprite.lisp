@@ -57,10 +57,10 @@
 
 ;;; Component event hooks
 
-(defmethod on-component-create ((component sprite))
-  (with-slots (%game-state %spec %spritesheet %geometry %name %initial-index %index) component
+(defmethod on-component-create ((self sprite))
+  (with-slots (%game-state %spec %spritesheet %geometry %name %initial-index %index) self
     (setf %spritesheet (cache-lookup %game-state :spec %spec
-                         (make-spritesheet component))
+                         (make-spritesheet self))
           %geometry (au:href (shared-storage %game-state) :spritesheet-geometry)
           %index (au:href (sprites %spritesheet) %name)
           %initial-index %index)))

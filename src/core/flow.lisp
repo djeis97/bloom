@@ -44,7 +44,7 @@
   (let ((component-table (components (active-scene game-state))))
     (au:do-hash-values (v (au:href component-table :created))
       (remhash v (au:href component-table :created))
-      (au:appendf (au:href component-table :active-by-type (component-type v)) (list v))
+      (pushnew v (au:href component-table :active-by-type (component-type v)))
       (setf (state v) :active))
     (flow/update/activate-entities game-state)))
 

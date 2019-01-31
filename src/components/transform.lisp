@@ -149,5 +149,5 @@
 
 ;;; Component event hooks
 
-(defmethod on-component-update ((component transform))
-  (transform-node (game-state component) component))
+(defmethod on-component-update ((self transform))
+  (transform-node (game-state self) self))

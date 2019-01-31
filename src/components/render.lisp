@@ -33,21 +33,21 @@
 
 ;;; Component event hooks
 
-(defmethod on-component-create ((component render))
-  (with-slots (%id %material) component
+(defmethod on-component-create ((self render))
+  (with-slots (%id %material) self
     (au:if-let ((material-definition (find-material-definition %material)))
-      (setf %material (make-material material-definition component))
+      (setf %material (make-material material-definition self))
       (error "Material ~s is not defined for component ~s." %material %id))))
 
-(defmethod on-component-attach ((component render))
-  (with-slots (%entity %transform) component
+(defmethod on-component-attach ((self render))
+  (with-slots (%entity %transform) self
     (setf %transform (get-entity-component-by-type %entity 'transform))
-    (set-draw-method component)))
+    (set-draw-method self)))
 
-(defmethod on-component-update ((component render))
-  (resolve-material (material component) component))
+(defmethod on-component-update ((self render))
+  (resolve-material (material self) self))
 
-(defmethod on-component-render ((component render))
-  (with-slots (%material) component
+(defmethod on-component-render ((self render))
+  (with-slots (%material) self
     (with-material (%material)
-      (funcall (draw-method component)))))
+      (funcall (draw-method self)))))

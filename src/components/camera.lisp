@@ -49,14 +49,23 @@
     (setf (fov-y camera) (au:clamp (- (fov-y camera) offset) 1.0 45.0))
     (set-camera-projection (mode camera) camera game-state)))
 
+(defun correct-camera-transform (camera)
+  (with-slots (%actor %mode %transform) camera
+    (when (m:zero-p (current (translation %transform)))
+      (let ((translation (ecase %mode
+                           ((:orthographic :isometric) (m:vec3 0 0 1))
+                           (:perspective (m:vec3 0 0 50)))))
+        (translate-transform %transform translation)))))
+
 ;;; Component event hooks
 
-(defmethod on-component-attach ((component camera))
-  (setf (scene component) (active-scene (game-state component))
-        (camera (scene component)) component
-        (fov-y component) (* (fov-y component) (/ pi 180))
-        (transform component) (get-entity-component-by-type (entity component) 'transform))
-  (set-camera-projection (mode component) component (game-state component)))
+(defmethod on-component-attach ((self camera))
+  (setf (scene self) (active-scene (game-state self))
+        (camera (scene self)) self
+        (fov-y self) (* (fov-y self) (/ pi 180))
+        (transform self) (get-entity-component-by-type (entity self) 'transform))
+  (correct-camera-transform self)
+  (set-camera-projection (mode self) self (game-state self)))
 
-(defmethod on-component-update ((component camera))
-  (set-camera-view component))
+(defmethod on-component-update ((self camera))
+  (set-camera-view self))

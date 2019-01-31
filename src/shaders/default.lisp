@@ -28,10 +28,10 @@
   (let ((color (.rgb (texture sampler uv))))
     (vec4 color opacity)))
 
-(bloom:define-shader colored (:version 430)
+(bloom:define-shader colored ()
   (:vertex (mesh/v :vec3 :vec3 :vec4 :vec4 :vec2 :vec2 :vec4 :vec4))
   (:fragment (colored/f :vec2)))
 
-(bloom:define-shader textured (:version 430)
+(bloom:define-shader textured ()
   (:vertex (mesh/v :vec3 :vec3 :vec4 :vec4 :vec2 :vec2 :vec4 :vec4))
   (:fragment (textured/f :vec2)))

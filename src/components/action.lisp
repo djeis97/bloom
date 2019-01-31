@@ -59,7 +59,7 @@
 
 ;;; Component event hooks
 
-(defmethod on-component-attach ((component action))
-  (setf (renderer component) (get-entity-component-by-type (entity component) 'render)
-        (attrs component) (au:plist->hash (attrs component) :test #'eq))
-  (insert-action component :tail))
+(defmethod on-component-attach ((self action))
+  (setf (renderer self) (get-entity-component-by-type (entity self) 'render)
+        (attrs self) (au:plist->hash (attrs self) :test #'eq))
+  (insert-action self :tail))

@@ -18,10 +18,10 @@
 (defun make-material-definition-uniform-table (uniforms-spec)
   (au:merge-tables
    (au:dict #'eq
-            :model (lambda (x) (get-render-model x))
-            :view (lambda (x) (get-render-view x))
-            :proj (lambda (x) (get-render-projection x))
-            :time (lambda (x) (get-render-time x)))
+            :model 'get-render-model
+            :view 'get-render-view
+            :proj 'get-render-projection
+            :time 'get-render-time)
    (apply #'au:dict #'eq uniforms-spec)))
 
 (defun copy-material-definition-uniforms (material-definition)

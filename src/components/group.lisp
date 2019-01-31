@@ -51,15 +51,15 @@
 
 ;;; Component event hooks
 
-(defmethod on-component-create ((component group))
-  (symbol-macrolet ((group-storage (au:href (shared-storage (game-state component)) :group-data)))
+(defmethod on-component-create ((self group))
+  (symbol-macrolet ((group-storage (au:href (shared-storage (game-state self)) :group-data)))
     (unless group-storage
       (setf group-storage (make-instance 'group-data)))))
 
-(defmethod on-component-attach ((component group))
-  (let ((name (name component))
-        (entity (entity component))
-        (group-data (get-group-data (game-state component))))
+(defmethod on-component-attach ((self group))
+  (let ((name (name self))
+        (entity (entity self))
+        (group-data (get-group-data (game-state self))))
     (push (id entity) (au:href (group->entities group-data) name))
     (push name (au:href (entity->groups group-data) (id entity)))
     (on-group-join entity name)))
