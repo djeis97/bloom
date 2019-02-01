@@ -55,6 +55,12 @@
               %debug-time now))
       (incf %debug-count))))
 
+(defun initialize-frame-time (game-state)
+  (with-slots (%start %now) (frame-manager game-state)
+    (let ((time (local-time:now)))
+      (setf %start time
+            %now %start))))
+
 (defun frame-update (game-state)
   (with-slots (%alpha %delta %accumulator %frame-time) (frame-manager game-state)
     (incf %accumulator %frame-time)

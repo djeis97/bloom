@@ -51,10 +51,9 @@
 (defun render-step (game-state)
   (with-slots (%running-p %display %frame-manager) game-state
     (when %running-p
-      (when (> (frame-count %frame-manager) (/ (delta %frame-manager)))
-        (clear-screen %display)
-        (map-components game-state #'on-component-render)
-        (sdl2:gl-swap-window (window %display)))
+      (clear-screen %display)
+      (map-components game-state #'on-component-render)
+      (sdl2:gl-swap-window (window %display))
       (incf (frame-count %frame-manager)))))
 
 (defun step-frame (game-state)
@@ -69,6 +68,7 @@
       (stop-engine game-state))))
 
 (defun main-loop (game-state)
+  (initialize-frame-time game-state)
   (au:while (running-p game-state)
     (step-frame game-state)))
 

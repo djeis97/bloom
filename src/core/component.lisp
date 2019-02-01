@@ -16,6 +16,8 @@
            :initform :create-pending)
    (%type :reader component-type
           :initarg :type)
+   (%updated-p :reader updated-p
+               :initform nil)
    (%entity :accessor entity
             :initarg :entity
             :initform nil)))
@@ -131,7 +133,12 @@
                entity))))
 
 (defgeneric on-component-update (self)
-  (:method (self)))
+  (:method (self))
+  (:method :after (self)
+    (setf (slot-value self '%updated-p) t)))
 
 (defgeneric on-component-render (self)
-  (:method (self)))
+  (:method (self))
+  (:method :around (self)
+    (when (updated-p self)
+      (call-next-method))))
