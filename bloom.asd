@@ -15,6 +15,7 @@
                #:queues.simple-cqueue
                #:local-time
                #:sdl2
+               :sdl2-image
                #:cl-tga
                #:pngload
                #:jsown
@@ -24,8 +25,7 @@
                #:golden-utils
                #:game-math
                #:doubly-linked-list
-               #:shadow
-               #:dungen)
+               #:shadow)
   :pathname "src"
   :serial t
   :components

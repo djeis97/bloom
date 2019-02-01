@@ -184,7 +184,7 @@
                      (height image)
                      0
                      (pixel-format image)
-                     (data-type image)
+                     (pixel-type image)
                      (data image))))
 
 (defmethod %make-texture ((type (eql :texture-2d)) texture (data null) &key width height)
