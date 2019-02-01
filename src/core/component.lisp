@@ -100,6 +100,30 @@
       (dolist (component (au:href components :active-by-type component-type))
         (funcall func component)))))
 
+(defun get-computed-component-precedence-list (component-type)
+  (au:when-let ((class (find-class component-type nil)))
+    (loop :for class :in (c2mop:compute-class-precedence-list class)
+          :for name = (class-name class)
+          :until (eq name 'component)
+          :when (subtypep name 'component)
+            :collect name)))
+
+(defun compute-component-initargs (component-type)
+  (let* ((class (find-class component-type))
+         (class-args (au:mappend #'c2mop:slot-definition-initargs
+                                 (c2mop:class-slots (c2mop:ensure-finalized class))))
+         (instance-lambda-list (c2mop:method-lambda-list
+                                (first
+                                 (c2mop:compute-applicable-methods-using-classes
+                                  #'reinitialize-instance
+                                  (list (find-class component-type))))))
+         (instance-args (mapcar
+                         (lambda (x)
+                           (au:make-keyword
+                            (car (au:ensure-list x))))
+                         (rest (member '&key instance-lambda-list)))))
+    (union class-args instance-args)))
+
 ;;; Component event hooks
 
 (defgeneric on-component-create (self)

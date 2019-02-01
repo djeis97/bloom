@@ -10,7 +10,7 @@
   :encoding :utf-8
   :long-description #.(uiop:read-file-string
                        (uiop/pathname:subpathname *load-pathname* "README.md"))
-  :depends-on (#:split-sequence
+  :depends-on (#:closer-mop
                #:defpackage-plus
                #:queues.simple-cqueue
                #:local-time
@@ -80,6 +80,10 @@
      (:file "action")
      (:file "sprite")
      (:file "render")))
+   (:module "prefab"
+    :components
+    ((:file "checks")
+     (:file "prefab")))
    (:module "addons"
     :components
     ((:file "actions")))))

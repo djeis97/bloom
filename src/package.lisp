@@ -13,6 +13,7 @@
            #:define-framebuffer
            #:define-material
            #:define-options
+           #:define-prefab
            #:define-prototype
            #:define-resource-paths
            #:define-scene
@@ -38,6 +39,7 @@
            #:on-component-detach
            #:on-component-update
            #:on-component-render
+           #:print-prefab
            #:render
            #:rotate
            #:rotate-transform
