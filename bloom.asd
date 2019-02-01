@@ -15,9 +15,7 @@
                #:queues.simple-cqueue
                #:local-time
                #:sdl2
-               :sdl2-image
-               #:cl-tga
-               #:pngload
+               #:sdl2-image
                #:jsown
                #:parsley
                #:cl-graph
