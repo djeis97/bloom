@@ -9,7 +9,7 @@
                   :initarg :refresh-rate)))
 
 (defun parse-opengl-version-string (string)
-  (values-list (mapcar #'parse-integer (split-sequence:split-sequence #\. string))))
+  (values-list (mapcar #'parse-integer (au:split-sequence #\. string))))
 
 (defun maybe-set-vsync (value)
   (let ((value
