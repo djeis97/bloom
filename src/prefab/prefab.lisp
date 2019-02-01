@@ -76,10 +76,10 @@
   (or (%find-node path)
       (error "Prefab node ~s not found." path)))
 
-(defun map-nodes (func node)
+(defun map-paths (func node)
   (funcall func node)
   (au:do-hash-values (child (children node))
-    (map-nodes func child)))
+    (map-paths func child)))
 
 (defun parse-copy/link (path copy-p link-p source)
   (ensure-copy/link-source-string path source)
@@ -203,7 +203,7 @@
   (au:do-hash (path node (parse-tree prefab))
     (destructuring-bind (&key source &allow-other-keys) (options node)
       (when source
-        (map-nodes
+        (map-paths
          (lambda (x)
            (if (string= source (path x))
                (insert-source-components x node)
@@ -307,7 +307,7 @@
            (format t "~a~v@<~s~>~%"
                    (make-string level :initial-element #\Space)
                    level value)))
-    (map-nodes
+    (map-paths
      (lambda (x)
        (let ((level (* 3 (1- (length (explode-path (path x)))))))
          (print-line level (name x))
