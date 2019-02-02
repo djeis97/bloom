@@ -61,7 +61,6 @@
      (:file "framebuffer")
      (:file "flow")
      (:file "component")
-     (:file "prototype")
      (:file "entity")
      (:file "scene")))
    (:module "shaders"

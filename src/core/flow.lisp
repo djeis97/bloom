@@ -53,6 +53,5 @@
     (au:do-hash-values (v (au:href entity-table :created))
       (remhash v (au:href entity-table :created))
       (setf (au:href entity-table :active-by-name (id v)) v
-            (au:href entity-table :active-by-prototype (prototype v)) v
             (state v) :active))
     (flow/update/check-pending game-state)))

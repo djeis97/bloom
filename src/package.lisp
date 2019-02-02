@@ -14,9 +14,8 @@
            #:define-material
            #:define-options
            #:define-prefab
-           #:define-prototype
            #:define-resource-paths
-           #:define-scene
+           #:define-scenes
            #:define-shader
            #:define-shader-function
            #:define-shader-struct

@@ -3,10 +3,10 @@
 (defclass entity ()
   ((%id :reader id
         :initarg :id)
-   (%prototype :reader prototype
-               :initarg :prototype)
    (%state :accessor state
            :initform :create-pending)
+   (%prefab-node :reader prefab-node
+                 :initarg :prefab-node)
    (%actions :reader actions
              :initform (doubly-linked-list:make-dlist :test #'eq))
    (%components :reader components
@@ -21,23 +21,17 @@
 
 (defun make-entity-tables ()
   (au:dict #'eq
-           :create-pending (au:dict #'eq)
-           :created (au:dict #'eq)
-           :active-by-name (au:dict #'eq)
-           :active-by-prototype (au:dict #'eq)
-           :destroy-pending (au:dict #'eq)))
+           :create-pending (au:dict #'equalp)
+           :created (au:dict #'equalp)
+           :active-by-name (au:dict #'equalp)
+           :destroy-pending (au:dict #'equalp)))
 
-(defun %make-entity (game-state prototype id)
-  (let ((scene (active-scene game-state))
-        (entity (make-instance 'entity :id id :prototype prototype)))
+(defun make-entity (game-state &key id prefab-node)
+  (let* ((id (or id (and prefab-node (name prefab-node))))
+         (scene (active-scene game-state))
+         (entity (make-instance 'entity :id id :prefab-node prefab-node)))
     (setf (au:href (entities scene) :create-pending entity) entity)
     entity))
-
-(defun make-entity (game-state name &key prototype)
-  (assert (au:href *prototypes* prototype) ()
-          "The prototype ~s does not exist when attempting to create entity ~s" prototype name)
-  (let ((prototype (au:href *prototypes* prototype)))
-    (funcall (func prototype) game-state name)))
 
 (defun attach-component (entity component)
   (let ((game-state (game-state component)))

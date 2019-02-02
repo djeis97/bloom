@@ -140,11 +140,20 @@
         (au:mvlet ((path options (parse-path-spec path path-spec)))
           (make-paths prefab path body options))))))
 
+(defun evaluate-components (components)
+  (let ((specs))
+    (dolist (component components)
+      (destructuring-bind (type options . args) component
+        (loop :for (k v) :on args :by #'cddr
+              :append (list k (eval v)) :into new-args
+              :finally (push `(,type ,options ,@new-args) specs))))
+    specs))
+
 (defun add-components (prefab path data)
   (au:mvlet ((components children (split-components/children data)))
     (let ((node (make-node prefab path)))
       (with-slots (%components) node
-        (au:appendf %components components)
+        (au:appendf %components (evaluate-components components))
         (dolist (child children)
           (destructuring-bind (path-spec . body) child
             (let ((path (parse-path-spec path path-spec)))
@@ -194,7 +203,7 @@
     (au:do-hash (type table (components-table node))
       (au:do-hash-values (data table)
         (destructuring-bind (&key id args &allow-other-keys) data
-          (push (list* type `(:id ,id) args) components))))
+          (push `(,type (:id ,id) ,@args) components))))
     components))
 
 (defun insert-source-components (source target)
@@ -344,6 +353,38 @@
       (clrhash %parse-tree))
     prefab))
 
+(defun make-prefab-entities (game-state prefab)
+  (let ((entities (au:dict #'equalp)))
+    (au:do-hash (path node (parse-tree prefab))
+      (setf (au:href entities path) (make-entity game-state :prefab-node node)))
+    entities))
+
+(defun make-prefab-entity-components (game-state entities)
+  (au:do-hash-values (entity entities)
+    (au:do-hash (type table (components-table (prefab-node entity)))
+      (au:do-hash-values (data table)
+        (let ((component (apply #'make-component game-state type :id type (getf data :args))))
+          (attach-component entity component))))))
+
+(defun make-prefab-entity-relationships (game-state entities)
+  (flet ((get-transform (node)
+           (get-entity-component-by-type (au:href entities (path node)) 'transform)))
+    (au:do-hash-values (entity entities)
+      (let ((node (prefab-node entity)))
+        (au:do-hash-values (child (children node))
+          (add-child
+           (if (parent node)
+               (get-transform (parent child))
+               (root-node (active-scene game-state)))
+           (get-transform child)))))
+    entities))
+
+(defun make-prefab-factory (prefab)
+  (lambda (game-state)
+    (let ((entities (make-prefab-entities game-state prefab)))
+      (make-prefab-entity-components game-state entities)
+      (make-prefab-entity-relationships game-state entities))))
+
 (defmacro define-prefab (name () &body body)
   (au:with-unique-names (prefab)
     `(progn
@@ -351,4 +392,5 @@
        (ensure-prefab-name-valid ',name)
        (let ((,prefab (make-prefab ',name ',body)))
          (setf (au:href *prefab-definitions* ',name) ,prefab)
-         (parse-prefab ,prefab)))))
+         (parse-prefab ,prefab)
+         (setf (slot-value ,prefab '%func) (make-prefab-factory ,prefab))))))
