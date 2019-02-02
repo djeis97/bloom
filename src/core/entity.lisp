@@ -10,21 +10,20 @@
    (%actions :reader actions
              :initform (doubly-linked-list:make-dlist :test #'eq))
    (%components :reader components
-                :initform (au:dict #'eq))
-   (%components-by-type :reader components-by-type
-                        :initform (au:dict #'eq))
-   (%components-by-id :reader components-by-id
-                      :initform (au:dict #'eq))))
+                :initform (au:dict #'eq))))
 
 (au:define-printer (entity stream :type t :identity t)
   (format stream "~a" (id entity)))
+
+(defmacro do-entities ((game-state binding) &body body)
+  `(au:do-hash-values (,binding (au:href (entities (active-scene ,game-state)) :active-by-name))
+     ,@body))
 
 (defun make-entity-tables ()
   (au:dict #'eq
            :create-pending (au:dict #'equalp)
            :created (au:dict #'equalp)
-           :active-by-name (au:dict #'equalp)
-           :destroy-pending (au:dict #'equalp)))
+           :active-by-name (au:dict #'equalp)))
 
 (defun make-entity (game-state &key id prefab-node)
   (let* ((id (or id (and prefab-node (name prefab-node))))
@@ -34,49 +33,43 @@
     entity))
 
 (defun attach-component (entity component)
-  (let ((game-state (game-state component)))
-    (unless (entity component)
-      (setf (entity component) entity))
-    (setf (au:href (components entity) component) component
-          (au:href (components-by-id entity) (component-id component)) component)
-    (push component (au:href (components-by-type entity) (component-type component)))
-    (mark-component-types-dirty game-state)
-    (cache-component component)
-    (map-components game-state #'on-component-attach)))
+  (with-slots (%game-state %id %type %entity) component
+    (unless %entity
+      (setf %entity entity))
+    (if (au:href (components %entity) %type)
+        (error "Cannot attach multiple transform components.")
+        (progn
+          (push component (au:href (components %entity) %type))
+          (mark-component-types-dirty %game-state)
+          (cache-component component)
+          (map-components %game-state #'on-component-attach)))))
 
 (defun attach-multiple-components (entity &rest components)
   (dolist (component components)
     (attach-component entity component)))
 
 (defun detach-component (entity component)
-  (let ((game-state (game-state component)))
-    (remhash component (components entity))
-    (remhash (component-id component) (components-by-id entity))
-    (au:deletef (au:href (components-by-type entity) (component-type component)) component)
-    (uncache-component component)
-    (mark-component-types-dirty game-state)
-    (on-component-detach component)))
+  (with-slots (%game-state %id %type) component
+    (if (eq %type 'transform)
+        (error "Cannot detach a transform component.")
+        (progn
+          (au:deletef (au:href (components entity) %type) component)
+          (uncache-component component)
+          (mark-component-types-dirty %game-state)
+          (on-component-detach component)))))
 
 (defun detach-all-components (entity)
-  (au:do-hash-keys (component (components entity))
-    (detach-component entity component)))
+  (au:do-hash-values (components (components entity))
+    (dolist (component components)
+      (detach-component entity component))))
 
 (defun get-entity-component-by-type (entity component-type)
-  (let ((components (au:href (components-by-type entity) component-type)))
+  (let ((components (au:href (components entity) component-type)))
     (values (first components)
             (rest components))))
 
-(defun get-entity-component-by-id (entity component-id)
-  (au:href (components-by-id entity) component-id))
-
 (defun has-component-p (entity component-type)
   (when (get-entity-component-by-type entity component-type) t))
-
-(defun toggle-component (entity component)
-  (au:if-let ((attached (au:href (components-by-type entity) (component-type component))))
-    (dolist (c attached)
-      (detach-component entity c))
-    (attach-component entity component)))
 
 (defun insert-entity (game-state entity &key parent)
   (let ((transform (get-entity-component-by-type entity 'transform)))
@@ -85,13 +78,14 @@
           (add-child (root-node (active-scene game-state)) transform)
           (add-child (get-entity-component-by-type parent 'transform) transform)))
     (mark-component-types-dirty game-state)
-    (au:do-hash-keys (component (components entity))
-      (cache-component component))
+    (au:do-hash-values (components (components entity))
+      (dolist (component components)
+        (cache-component component)))
     (on-entity-insert entity)))
 
-(defun delete-entity (game-state entity)
-  ;; TODO: Actually delete entity.
-  (declare (ignore game-state))
+(defun delete-entity (entity)
+  (setf (state entity) :destroy)
+  (prune-tree (get-entity-component-by-type entity 'transform))
   (on-entity-delete entity))
 
 ;;; Entity event hooks

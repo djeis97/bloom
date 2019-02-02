@@ -34,7 +34,6 @@
            #:on-action-update
            #:on-component-attach
            #:on-component-create
-           #:on-component-delete
            #:on-component-detach
            #:on-component-update
            #:on-component-render

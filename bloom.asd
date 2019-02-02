@@ -50,10 +50,8 @@
     ((:file "options")
      (:file "logging")
      (:file "tasks")
-     (:file "engine")
      (:file "resource-cache")
      (:file "host")
-     (:file "display")
      (:file "frame")
      (:file "texture")
      (:file "material")
@@ -62,7 +60,9 @@
      (:file "flow")
      (:file "component")
      (:file "entity")
-     (:file "scene")))
+     (:file "scene")
+     (:file "engine")
+     (:file "display")))
    (:module "shaders"
     :components
     ((:file "default")

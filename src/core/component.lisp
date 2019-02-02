@@ -41,8 +41,7 @@
   (au:dict #'eq
            :create-pending (au:dict #'eq)
            :created (au:dict #'eq)
-           :active-by-type (au:dict #'eq)
-           :destroy-pending (au:dict #'eq)))
+           :active-by-type (au:dict #'eq)))
 
 (defun compute-component-type-order (game-state)
   (flet ((dag-p (graph)
@@ -124,20 +123,20 @@
                          (rest (member '&key instance-lambda-list)))))
     (union class-args instance-args)))
 
+(defun delete-component (component)
+  (if (eq (component-type component) 'transform)
+      (error "Cannot delete a transform component.")
+      (progn
+        (setf (state component) :destroy)
+        (au:when-let ((entity (entity component)))
+          (detach-component entity component)))))
+
 ;;; Component event hooks
 
 (defgeneric on-component-create (self)
   (:method (self))
   (:method :after (self)
     (v:trace :bloom.component.create "Created ~a component." (component-type self))))
-
-(defgeneric on-component-delete (self)
-  (:method (self))
-  (:method :around (self)
-    (au:when-let ((entity (entity self)))
-      (detach-component entity self))
-    (call-next-method)
-    (v:trace :bloom.component.delete "Deleted ~a component." (component-type self))))
 
 (defgeneric on-component-attach (self)
   (:method (self))

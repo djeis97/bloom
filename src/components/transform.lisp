@@ -127,6 +127,16 @@
           (previous %scaling) (m:copy (current %scaling))
           (incremental %scaling) scale/inc)))
 
+(defun prune-tree (transform)
+  (au:when-let* ((parent-transform (parent transform))
+                 (parent (entity parent-transform)))
+    (au:deletef (children (get-entity-component-by-type parent 'transform)) transform))
+  (map-nodes
+   (lambda (node)
+     (let ((entity (entity node)))
+       (setf (state entity) :destroy)))
+   transform))
+
 ;;; User API
 
 (defun translate-transform (transform vec &key replace-p instant-p)

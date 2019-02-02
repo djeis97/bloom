@@ -1,6 +1,6 @@
 (in-package :bloom)
 
-(defvar *game-state*)
+(defvar *game-state* nil)
 
 (defclass game-state ()
   ((%running-p :accessor running-p
@@ -37,12 +37,11 @@
                        :debug-interval (option game-state :debug-interval))))
 
 (defun update-step (game-state)
-  (with-slots (%component-data %active-scene) game-state
-    (when (cache-dirty-p %component-data)
-      (cache-transform-components game-state))
-    (map-components game-state #'on-component-update)
-    (au:do-hash-values (entity (au:href (entities %active-scene) :active-by-name))
-      (process-actions (actions entity)))))
+  (when (cache-dirty-p (component-data game-state))
+    (cache-transform-components game-state))
+  (map-components game-state #'on-component-update)
+  (do-entities (game-state entity)
+    (process-actions (actions entity))))
 
 (defun periodic-update-step (game-state)
   (update-lisp-repl)
@@ -87,14 +86,15 @@
     (v:info :bloom.engine.start "~a is now running." title)))
 
 (defun start-engine (&key profile-duration)
-  (unwind-protect
-       (let ((game-state (make-instance 'game-state)))
-         (setf *game-state* game-state)
-         (initialize-engine game-state)
-         (if profile-duration
-             (profile game-state profile-duration)
-             (main-loop game-state)))
-    (force-quit)))
+  (unless *game-state*
+    (unwind-protect
+         (let ((game-state (make-instance 'game-state)))
+           (setf *game-state* game-state)
+           (initialize-engine game-state)
+           (if profile-duration
+               (profile game-state profile-duration)
+               (main-loop game-state)))
+      (force-quit))))
 
 (defun stop-engine (game-state)
   (let ((title (option game-state :title)))

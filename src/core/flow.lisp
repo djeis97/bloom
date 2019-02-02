@@ -1,16 +1,21 @@
 (in-package :bloom)
 
 (defun flow/update (game-state)
-  (flow/update/switch-scene game-state))
+  (flow/switch-scene game-state)
+  (flow/create game-state)
+  (flow/delete game-state))
 
-(defun flow/update/switch-scene (game-state)
+;; switch scene
+
+(defun flow/switch-scene (game-state)
   (with-slots (%active-scene %next-scene) game-state
     (when %next-scene
       (unless (eq %active-scene %next-scene)
-        (setf %active-scene %next-scene)))
-    (flow/update/check-pending game-state)))
+        (setf %active-scene %next-scene)))))
 
-(defun flow/update/check-pending (game-state)
+;; create
+
+(defun flow/create (game-state)
   (let* ((scene (active-scene game-state))
          (entity-table (entities scene))
          (component-table (components scene)))
@@ -19,9 +24,9 @@
                 (au:do-hash-values (v (au:href component-table :create-pending))
                   (when (plusp (hash-table-count v))
                     (return-from nil t)))))
-      (flow/update/create-components game-state))))
+      (flow/create/components game-state))))
 
-(defun flow/update/create-components (game-state)
+(defun flow/create/components (game-state)
   (let ((component-table (components (active-scene game-state))))
     (dolist (type (type-order (component-data game-state)))
       (au:do-hash-values (v (au:href component-table :create-pending))
@@ -30,28 +35,51 @@
           (setf (au:href component-table :created v) v
                 (state v) :created)
           (on-component-create v))))
-    (flow/update/create-entities game-state)))
+    (flow/create/entities game-state)))
 
-(defun flow/update/create-entities (game-state)
+(defun flow/create/entities (game-state)
   (let ((entity-table (entities (active-scene game-state))))
     (au:do-hash-values (v (au:href entity-table :create-pending))
       (remhash v (au:href entity-table :create-pending))
       (setf (au:href entity-table :created v) v
             (state v) :created))
-    (flow/update/activate-components game-state)))
+    (flow/create/activate-components game-state)))
 
-(defun flow/update/activate-components (game-state)
+(defun flow/create/activate-components (game-state)
   (let ((component-table (components (active-scene game-state))))
     (au:do-hash-values (v (au:href component-table :created))
       (remhash v (au:href component-table :created))
       (pushnew v (au:href component-table :active-by-type (component-type v)))
       (setf (state v) :active))
-    (flow/update/activate-entities game-state)))
+    (flow/create/activate-entities game-state)))
 
-(defun flow/update/activate-entities (game-state)
+(defun flow/create/activate-entities (game-state)
   (let ((entity-table (entities (active-scene game-state))))
     (au:do-hash-values (v (au:href entity-table :created))
       (remhash v (au:href entity-table :created))
       (setf (au:href entity-table :active-by-name (id v)) v
-            (state v) :active))
-    (flow/update/check-pending game-state)))
+            (state v) :active))))
+
+;;; delete
+
+(defun flow/delete (game-state)
+  (flow/delete/entities game-state)
+  (flow/delete/components game-state))
+
+(defun flow/delete/entities (game-state)
+  (let ((entity-table (entities (active-scene game-state))))
+    (au:do-hash (k entity (au:href entity-table :active-by-name))
+      (when (eq (state entity) :destroy)
+        (au:do-hash-values (components (components entity))
+          (dolist (component components)
+            (setf (state component) :destroy)))
+        (remhash k (au:href entity-table :active-by-name))))))
+
+(defun flow/delete/components (game-state)
+  (let ((component-table (components (active-scene game-state))))
+    (au:do-hash (k v (au:href component-table :active-by-type))
+      (dolist (component v)
+        (when (eq (state component) :destroy)
+          (au:deletef (au:href component-table :active-by-type k) component)))
+      (unless v
+        (remhash k (au:href component-table :active-by-type))))))
