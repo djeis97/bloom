@@ -73,7 +73,9 @@
         (au:do-hash-values (components (components entity))
           (dolist (component components)
             (setf (state component) :destroy)))
-        (remhash k (au:href entity-table :active-by-name))))))
+        (remhash k (au:href entity-table :active-by-name))
+        (let ((prefab-name (name (prefab (prefab-node entity)))))
+          (remhash k (au:href entity-table :active-by-prefab prefab-name)))))))
 
 (defun flow/delete/components (game-state)
   (let ((component-table (components (active-scene game-state))))

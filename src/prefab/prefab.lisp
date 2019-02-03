@@ -354,10 +354,16 @@
     prefab))
 
 (defun make-prefab-entities (game-state prefab)
-  (let ((entities (au:dict #'equalp)))
-    (au:do-hash (path node (parse-tree prefab))
-      (setf (au:href entities path) (make-entity game-state :prefab-node node)))
-    entities))
+  (let ((prefab-entities (au:dict #'equalp))
+        (scene-entities (entities (active-scene game-state))))
+    (symbol-macrolet ((active (au:href scene-entities :active-by-prefab (name prefab))))
+      (unless active
+        (setf active (au:dict #'eq)))
+      (au:do-hash (path node (parse-tree prefab))
+        (let ((entity (make-entity game-state :prefab-node node)))
+          (setf (au:href prefab-entities path) entity
+                (au:href active (id entity)) entity)))
+      prefab-entities)))
 
 (defun make-prefab-entity-components (game-state entities)
   (au:do-hash-values (entity entities)
@@ -366,16 +372,20 @@
         (let ((component (apply #'make-component game-state type :id type (getf data :args))))
           (attach-component entity component))))))
 
-(defun make-prefab-entity-relationships (game-state entities)
-  (flet ((get-transform (node)
-           (get-entity-component-by-type (au:href entities (path node)) 'transform)))
+(defun make-prefab-entity-relationships (game-state prefab entities)
+  (labels ((get-transform (node)
+             (get-entity-component-by-type (au:href entities (path node)) 'transform))
+           (get-root-node ()
+             (let ((root-node (get-transform (root prefab))))
+               (setf (root-node (active-scene game-state)) root-node)
+               root-node)))
     (au:do-hash-values (entity entities)
       (let ((node (prefab-node entity)))
         (au:do-hash-values (child (children node))
           (add-child
            (if (parent node)
                (get-transform (parent child))
-               (root-node (active-scene game-state)))
+               (get-root-node))
            (get-transform child)))))
     entities))
 
@@ -390,7 +400,7 @@
   (lambda (game-state)
     (let ((entities (make-prefab-entities game-state prefab)))
       (make-prefab-entity-components game-state entities)
-      (make-prefab-entity-relationships game-state entities))))
+      (make-prefab-entity-relationships game-state prefab entities))))
 
 (defmacro define-prefab (name () &body body)
   (au:with-unique-names (prefab)

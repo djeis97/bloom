@@ -21,12 +21,13 @@
 
 (defun make-entity-tables ()
   (au:dict #'eq
-           :create-pending (au:dict #'equalp)
-           :created (au:dict #'equalp)
-           :active-by-name (au:dict #'equalp)))
+           :create-pending (au:dict #'eq)
+           :created (au:dict #'eq)
+           :active-by-name (au:dict #'eq)
+           :active-by-prefab (au:dict #'equalp)))
 
-(defun make-entity (game-state &key id prefab-node)
-  (let* ((id (or id (and prefab-node (name prefab-node))))
+(defun make-entity (game-state &key prefab-node)
+  (let* ((id (au:unique-name (au:format-symbol *package* "~:@(~a~)-" (name prefab-node))))
          (scene (active-scene game-state))
          (entity (make-instance 'entity :id id :prefab-node prefab-node)))
     (setf (au:href (entities scene) :create-pending entity) entity)
@@ -74,9 +75,7 @@
 (defun insert-entity (game-state entity &key parent)
   (let ((transform (get-entity-component-by-type entity 'transform)))
     (when parent
-      (if (eq parent :universe)
-          (add-child (root-node (active-scene game-state)) transform)
-          (add-child (get-entity-component-by-type parent 'transform) transform)))
+      (add-child (get-entity-component-by-type parent 'transform) transform))
     (mark-component-types-dirty game-state)
     (au:do-hash-values (components (components entity))
       (dolist (component components)

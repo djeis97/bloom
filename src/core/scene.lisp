@@ -15,21 +15,11 @@
    (%camera :accessor camera
             :initform nil)))
 
-(defun make-universe (game-state)
-  (let ((scene (active-scene game-state))
-        (universe (make-entity game-state :id 'universe)))
-    (attach-component universe (make-component game-state 'transform :entity universe))
-    (insert-entity game-state universe :parent nil)
-    (setf (root-node scene) (get-entity-component-by-type universe 'transform))
-    universe))
-
 (defun make-scenes (game-state)
   (let ((default (option game-state :default-scene)))
     (au:do-hash-keys (name *scene-definitions*)
       (let ((scene (make-instance 'scene :name name)))
-        (setf (active-scene game-state) scene
-              (au:href (scenes game-state) name) scene)
-        (make-universe game-state)))
+        (setf (au:href (scenes game-state) name) scene)))
     (setf (active-scene game-state) nil)
     (load-scene game-state default)))
 
