@@ -23,7 +23,8 @@
                #:golden-utils
                #:game-math
                #:doubly-linked-list
-               #:shadow)
+               #:shadow
+               #:umbra)
   :pathname "src"
   :serial t
   :components
