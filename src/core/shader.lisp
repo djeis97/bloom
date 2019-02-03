@@ -1,27 +1,7 @@
 (in-package :bloom)
 
-(defvar *shader-definitions* (au:dict #'eq))
-
-(defmacro define-shader (name (&key (version :430) (primitive :triangles)) &body body)
-  (let ((shader-name (au:format-symbol :bloom.shader "~a" name)))
-    `(progn
-       (setf (au:href *shader-definitions* ',shader-name)
-             (lambda ()
-               (let ((*package* (find-package :bloom.shader)))
-                 (shadow:define-shader ,shader-name (:version ,version :primitive ,primitive)
-                   ,@body))))
-       (export ',shader-name))))
-
-(defmacro define-shader-struct (name &body slots)
-  `(shadow:define-struct ,name ,@slots))
-
-(defmacro define-shader-function (name args &body body)
-  `(shadow:define-function ,name ,args ,@body))
-
 (defun initialize-shaders (game-state)
   (shadow:reset-program-state)
-  (au:do-hash-values (shader-factory *shader-definitions*)
-    (funcall shader-factory))
   (shadow:enable-dependency-tracking)
   (shadow:build-shader-dictionary)
   (shadow:set-modify-hook (generate-shader-modified-hook game-state)))
