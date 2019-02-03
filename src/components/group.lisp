@@ -10,7 +10,7 @@
                     :initform (au:dict #'eq))))
 
 (defun get-group-data (game-state)
-  (au:href (shared-storage game-state) :group-data))
+  (au:href (storage game-state) 'group-data))
 
 (defun get-entity-groups (game-state entity)
   (values (au:href (entity->groups (get-group-data game-state)) (id entity))))
@@ -52,7 +52,7 @@
 ;;; Component event hooks
 
 (defmethod on-component-create ((self group))
-  (symbol-macrolet ((group-storage (au:href (shared-storage (game-state self)) :group-data)))
+  (symbol-macrolet ((group-storage (au:href (storage (game-state self)) 'group-data)))
     (unless group-storage
       (setf group-storage (make-instance 'group-data)))))
 

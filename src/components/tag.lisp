@@ -10,7 +10,7 @@
                  :initform (au:dict #'eq))))
 
 (defun get-tag-data (game-state)
-  (au:href (shared-storage game-state) :tag-data))
+  (au:href (storage game-state) 'tag-data))
 
 (defun get-entity-tag (game-state entity)
   (values (au:href (entity->tag (get-tag-data game-state)) (id entity))))
@@ -34,7 +34,7 @@
 ;;; Component event hooks
 
 (defmethod on-component-create ((self tag))
-  (symbol-macrolet ((tag-storage (au:href (shared-storage (game-state self)) :tag-data)))
+  (symbol-macrolet ((tag-storage (au:href (storage (game-state self)) 'tag-data)))
     (unless tag-storage
       (setf tag-storage (make-instance 'tag-data)))))
 

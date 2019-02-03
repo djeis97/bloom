@@ -12,11 +12,11 @@
                    ,@body))))
        (export ',shader-name))))
 
-(defmacro define-shader-struct (name () &body slots)
-  `(shadow:define-gpu-struct ,name () ,@slots))
+(defmacro define-shader-struct (name &body slots)
+  `(shadow:define-struct ,name ,@slots))
 
 (defmacro define-shader-function (name args &body body)
-  `(shadow:define-gpu-function ,name ,args ,@body))
+  `(shadow:define-function ,name ,args ,@body))
 
 (defun initialize-shaders (game-state)
   (shadow:reset-program-state)
@@ -44,7 +44,7 @@
   (shadow:disable-dependency-tracking))
 
 (defun make-shader-blocks (game-state shaders name)
-  (symbol-macrolet ((binding (au:href (shared-storage game-state) :shader-bindings)))
+  (symbol-macrolet ((binding (au:href (storage game-state) 'shader-bindings)))
     (unless binding
       (setf binding 0))
     (incf binding)

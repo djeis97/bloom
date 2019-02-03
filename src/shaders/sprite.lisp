@@ -1,10 +1,10 @@
 (in-package :bloom.shader)
 
-(b:define-shader-struct sprite-data ()
+(b:define-shader-struct sprite-data
   (sampler :sampler-2d :accessor sampler)
   (index :int :accessor index))
 
-(b:define-shader-struct spritesheet-data ()
+(b:define-shader-struct spritesheet-data
   (x (:float 2048) :accessor x)
   (y (:float 2048) :accessor y)
   (w (:float 2048) :accessor w)

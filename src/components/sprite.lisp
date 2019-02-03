@@ -45,7 +45,7 @@
                 (vao (gl:gen-vertex-array))
                 (blocks binding (make-shader-blocks %game-state %shaders %name)))
       (make-shader-buffer %name (first blocks) binding sprite)
-      (setf (au:href (shared-storage %game-state) :spritesheet-geometry) vao)
+      (setf (au:href (storage %game-state) 'spritesheet-geometry) vao)
       spritesheet)))
 
 (defun draw-sprite (sprite)
@@ -61,6 +61,6 @@
   (with-slots (%game-state %spec %spritesheet %geometry %name %initial-index %index) self
     (setf %spritesheet (cache-lookup %game-state :spec %spec
                          (make-spritesheet self))
-          %geometry (au:href (shared-storage %game-state) :spritesheet-geometry)
+          %geometry (au:href (storage %game-state) 'spritesheet-geometry)
           %index (au:href (sprites %spritesheet) %name)
           %initial-index %index)))

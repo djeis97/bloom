@@ -20,8 +20,8 @@
                    :initform :full-screen)
    (%resource-cache :reader resource-cache
                     :initform (au:dict #'equalp))
-   (%shared-storage :reader shared-storage
-                    :initform (au:dict #'eq))
+   (%storage :reader storage
+             :initform (au:dict #'eq))
    (%scenes :reader scenes
             :initform (au:dict #'eq))
    (%active-scene :accessor active-scene)

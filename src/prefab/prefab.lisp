@@ -402,7 +402,7 @@
       (make-prefab-entity-components game-state entities)
       (make-prefab-entity-relationships game-state prefab entities))))
 
-(defmacro define-prefab (name () &body body)
+(defmacro define-prefab (name &body body)
   (au:with-unique-names (prefab)
     `(progn
        (ensure-prefab-name-string ',name)

@@ -42,11 +42,11 @@
            #:rotate
            #:rotate-transform
            #:shader-modified-post-hook
-           #:shared-storage
            #:sprite
            #:sprite-animate
            #:start-engine
            #:stop-engine
+           #:storage
            #:switch-scene
            #:tag
            #:transform
@@ -56,5 +56,5 @@
 
 (defpackage+ #:bloom.shader
   (:local-nicknames (#:b #:bloom))
-  (:use #:cl)
-  (:inherit #:shadow.vari))
+  (:use #:cl #:umbra.swizzle)
+  (:inherit #:umbra))
