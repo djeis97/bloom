@@ -6,9 +6,10 @@
   (view (m:mat4 1))
   (projection (m:mat4 1))
   (mode :orthographic)
-  (clip-near -10000.0)
-  (clip-far 10000.0)
+  (clip-near 0.1)
+  (clip-far 1024)
   (fov-y 45.0)
+  (zoom 1)
   (transform nil))
 
 (defun set-camera-view (camera)
@@ -19,24 +20,20 @@
     (m:set-view eye target up (view camera))))
 
 (defmethod set-camera-projection ((mode (eql :orthographic)) camera game-state)
-  (let ((w (/ (option game-state :window-width) 2))
-        (h (/ (option game-state :window-height) 2)))
-    (m:set-projection/orthographic (- w)
-                                   w
-                                   (- h)
-                                   h
-                                   (clip-near camera)
-                                   (clip-far camera)
-                                   (projection camera))))
+  (with-slots (%clip-near %clip-far %zoom %projection) camera
+    (let ((w (/ (option game-state :window-width) %zoom 2))
+          (h (/ (option game-state :window-height) %zoom 2)))
+      (m:set-projection/orthographic (- w) w (- h) h %clip-near %clip-far %projection))))
 
 (defmethod set-camera-projection ((mode (eql :perspective)) camera game-state)
-  (let ((aspect-ratio (/ (option game-state :window-width)
-                         (option game-state :window-height))))
-    (m:set-projection/perspective (fov-y camera)
-                                  aspect-ratio
-                                  (clip-near camera)
-                                  (clip-far camera)
-                                  (projection camera))))
+  (with-slots (%fov-y %zoom %clip-near %clip-far %projection) camera
+    (let ((aspect-ratio (/ (option game-state :window-width)
+                           (option game-state :window-height))))
+      (m:set-projection/perspective (/ %fov-y %zoom)
+                                    aspect-ratio
+                                    %clip-near
+                                    %clip-far
+                                    %projection))))
 
 (defmethod set-camera-projection ((mode (eql :isometric)) camera game-state)
   (with-slots (%rotation) (transform camera)
@@ -60,12 +57,13 @@
 ;;; Component event hooks
 
 (defmethod on-component-attach ((self camera))
-  (setf (scene self) (active-scene (game-state self))
-        (camera (scene self)) self
-        (fov-y self) (* (fov-y self) (/ pi 180))
-        (transform self) (get-entity-component-by-type (entity self) 'transform))
-  (correct-camera-transform self)
-  (set-camera-projection (mode self) self (game-state self)))
+  (with-slots (%game-state %entity %scene %mode %fov-y %transform) self
+    (setf %scene (active-scene %game-state)
+          (camera %scene) self
+          %fov-y (* %fov-y (/ pi 180))
+          %transform (get-entity-component-by-type %entity 'transform))
+    (correct-camera-transform self)
+    (set-camera-projection %mode self %game-state)))
 
 (defmethod on-component-update ((self camera))
   (set-camera-view self))
