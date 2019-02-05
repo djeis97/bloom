@@ -289,21 +289,29 @@
     (merge-component :new-type node type id args)))
 
 (defmethod merge-component ((policy (eql :new-type)) node type id args)
-  (setf (au:href (components-table node) type id) (list :id id :policy policy :args args)))
+  (setf (au:href (components-table node) type id)
+        (list :id id :policy policy :args args)))
 
 (defmethod merge-component ((policy (eql :old-type)) node type id args)
   (au:unless-found (components (au:href (components-table node) type id))
-    (setf (au:href (components-table node) type id) (list :id id :policy policy :args args))))
+    (setf (au:href (components-table node) type id)
+          (list :id id :policy policy :args args))))
 
 (defmethod merge-component ((policy (eql :new-args)) node type id args)
-  (let* ((old-args (au:plist->hash (getf (au:href (components-table node) type id) :args)))
-         (new-args (au:hash->plist (au:merge-tables old-args (au:plist->hash args)))))
-    (setf (au:href (components-table node) type id) (list :id id :policy policy :args new-args))))
+  (let* ((old-args (au:plist->hash
+                    (getf (au:href (components-table node) type id) :args)))
+         (new-args (au:hash->plist
+                    (au:merge-tables old-args (au:plist->hash args)))))
+    (setf (au:href (components-table node) type id)
+          (list :id id :policy policy :args new-args))))
 
 (defmethod merge-component ((policy (eql :old-args)) node type id args)
-  (let* ((old-args (au:plist->hash (getf (au:href (components-table node) type id) :args)))
-         (new-args (au:hash->plist (au:merge-tables (au:plist->hash args) old-args))))
-    (setf (au:href (components-table node) type id) (list :id id :policy policy :args new-args))))
+  (let* ((old-args (au:plist->hash
+                    (getf (au:href (components-table node) type id) :args)))
+         (new-args (au:hash->plist
+                    (au:merge-tables (au:plist->hash args) old-args))))
+    (setf (au:href (components-table node) type id)
+          (list :id id :policy policy :args new-args))))
 
 (defun make-component-table (prefab)
   (au:do-hash-values (node (parse-tree prefab))
@@ -356,7 +364,8 @@
 (defun make-prefab-entities (game-state prefab)
   (let ((prefab-entities (au:dict #'equalp))
         (scene-entities (entities (active-scene game-state))))
-    (symbol-macrolet ((active (au:href scene-entities :active-by-prefab (name prefab))))
+    (symbol-macrolet ((active (au:href scene-entities :active-by-prefab
+                                       (name prefab))))
       (unless active
         (setf active (au:dict #'eq)))
       (au:do-hash (path node (parse-tree prefab))
@@ -374,7 +383,8 @@
 
 (defun make-prefab-entity-relationships (game-state prefab entities)
   (labels ((get-transform (node)
-             (get-entity-component-by-type (au:href entities (path node)) 'transform))
+             (get-entity-component-by-type (au:href entities (path node))
+                                           'transform))
            (get-root-node ()
              (let ((root-node (get-transform (root prefab))))
                (setf (root-node (active-scene game-state)) root-node)
