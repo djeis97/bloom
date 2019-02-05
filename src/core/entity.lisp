@@ -7,8 +7,6 @@
            :initform :create-pending)
    (%prefab-node :reader prefab-node
                  :initarg :prefab-node)
-   (%actions :reader actions
-             :initform (doubly-linked-list:make-dlist :test #'eq))
    (%components :reader components
                 :initform (au:dict #'eq))))
 

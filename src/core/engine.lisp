@@ -39,9 +39,7 @@
 (defun update-step (game-state)
   (when (cache-dirty-p (component-data game-state))
     (cache-transform-components game-state))
-  (map-components game-state #'on-component-update)
-  (do-entities (game-state entity)
-    (process-actions (actions entity))))
+  (map-components game-state #'on-component-update))
 
 (defun periodic-update-step (game-state)
   (update-lisp-repl)
