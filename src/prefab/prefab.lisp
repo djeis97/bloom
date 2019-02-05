@@ -376,10 +376,12 @@
 
 (defun make-prefab-entity-components (game-state entities)
   (au:do-hash-values (entity entities)
-    (au:do-hash (type table (components-table (prefab-node entity)))
-      (au:do-hash-values (data table)
-        (let ((component (apply #'make-component game-state type :id type (getf data :args))))
-          (attach-component entity component))))))
+    (dolist (type (type-order (component-data game-state)))
+      (au:when-let (table (au:href (components-table (prefab-node entity)) type))
+        (au:do-hash-values (data table)
+          (let ((component (apply #'make-component game-state type :id type
+                                  (getf data :args))))
+            (attach-component entity component)))))))
 
 (defun make-prefab-entity-relationships (game-state prefab entities)
   (labels ((get-transform (node)

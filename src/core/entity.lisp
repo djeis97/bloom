@@ -41,7 +41,7 @@
           (push component (au:href (components %entity) %type))
           (mark-component-types-dirty %game-state)
           (cache-component component)
-          (map-components %game-state #'on-component-attach)))))
+          (on-component-attach component)))))
 
 (defun attach-multiple-components (entity &rest components)
   (dolist (component components)
