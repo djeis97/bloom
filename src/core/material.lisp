@@ -121,6 +121,7 @@
     (with-slots (%value %actual-value) uniform
       (setf %actual-value
             (typecase %value
+              (boolean %value)
               ((or function symbol)
                (funcall %value render))
               (t
@@ -137,7 +138,8 @@
             (gl:active-texture unit)
             (gl:bind-texture (au:href +sampler-targets+ uniform-type) value)
             (shadow:uniform-int shader uniform unit))))
-       ((:bool :int) #'shadow:uniform-int)
+       (:bool #'shadow::uniform-bool)
+       (:int #'shadow:uniform-int)
        (:float #'shadow:uniform-float)
        (:vec2 (lambda (shader uniform value)
                 (shadow:uniform-vec2 shader uniform (m:get-array value))))
