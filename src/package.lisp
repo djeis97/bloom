@@ -40,6 +40,7 @@
            #:on-action-update
            #:on-component-attach
            #:on-component-create
+           #:on-component-destroy
            #:on-component-detach
            #:on-component-update
            #:on-component-render

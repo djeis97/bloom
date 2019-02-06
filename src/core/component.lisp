@@ -136,12 +136,18 @@
 (defgeneric on-component-create (self)
   (:method (self))
   (:method :after (self)
-    (v:trace :bloom.component.create "Created ~a component." (component-type self))))
+    (v:trace :bloom.component "Created ~a component." (component-type self))))
+
+(defgeneric on-component-destroy (self)
+  (:method (self))
+  (:method :around (self)
+    (call-next-method)
+    (v:trace :bloom.component "Destroyed ~a component." (component-type self))))
 
 (defgeneric on-component-attach (self)
   (:method (self))
   (:method :after (self)
-    (v:trace :bloom.component.attach "Attached ~a component to entity ~a."
+    (v:trace :bloom.component "Attached ~a component to entity ~a."
              (component-type self)
              (id (entity self)))))
 
@@ -151,7 +157,7 @@
     (let ((entity (id (entity self))))
       (call-next-method)
       (setf (entity self) nil)
-      (v:trace :bloom.component.detach "Detached ~a component from entity ~a."
+      (v:trace :bloom.component "Detached ~a component from entity ~a."
                (component-type self)
                entity))))
 

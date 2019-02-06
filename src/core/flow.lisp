@@ -83,6 +83,7 @@
     (au:do-hash (k v (au:href component-table :active-by-type))
       (dolist (component v)
         (when (eq (state component) :destroy)
-          (au:deletef (au:href component-table :active-by-type k) component)))
+          (au:deletef (au:href component-table :active-by-type k) component)
+          (on-component-destroy component)))
       (unless v
         (remhash k (au:href component-table :active-by-type))))))
