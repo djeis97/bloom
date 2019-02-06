@@ -50,7 +50,8 @@
     (au:do-hash-values (v (au:href component-table :created))
       (remhash v (au:href component-table :created))
       (pushnew v (au:href component-table :active-by-type (component-type v)))
-      (setf (state v) :active))
+      (setf (state v) :active)
+      (on-component-attach v))
     (flow/create/activate-entities game-state)))
 
 (defun flow/create/activate-entities (game-state)

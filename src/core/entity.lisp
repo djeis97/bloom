@@ -40,8 +40,7 @@
         (progn
           (push component (au:href (components %entity) %type))
           (mark-component-types-dirty %game-state)
-          (cache-component component)
-          (on-component-attach component)))))
+          (cache-component component)))))
 
 (defun attach-multiple-components (entity &rest components)
   (dolist (component components)
