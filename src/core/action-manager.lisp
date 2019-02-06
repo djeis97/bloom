@@ -63,14 +63,19 @@
   (with-slots (%shape %elapsed %duration) action
     (funcall %shape (au:clamp (/ %elapsed %duration) 0f0 1f0))))
 
-(defun insert-default-actions (manager action-specs)
+(defun make-action (entity position &rest args)
+  (let* ((manager (manager (get-entity-component-by-type entity 'actions)))
+         (action (apply #'make-instance 'action :manager manager args)))
+    (apply #'insert-action action position)))
+
+(defun make-default-actions (manager action-specs)
   (dolist (spec action-specs)
     (let ((action (apply #'make-instance 'action :manager manager spec)))
       (insert-action action :tail))))
 
 (defun make-action-manager (render specs)
   (let ((manager (make-instance 'action-manager :render render)))
-    (insert-default-actions manager specs)
+    (make-default-actions manager specs)
     manager))
 
 (defun process-actions (manager)

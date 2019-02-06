@@ -21,28 +21,28 @@
 ;;; rotate
 
 (defmethod on-action-update (action (name (eql 'rotate)))
-  (let* ((transform (transform (render action)))
-         (attrs (attrs action))
-         (angle (or (au:href attrs :angle) (* pi 2)))
-         (step (au:map-domain 0 1 0 angle (action-step action))))
-    (ecase (or (au:href attrs :axis) :z)
-      (:x (rotate-transform transform (m:vec3 step 0 0) :replace-p t))
-      (:y (rotate-transform transform (m:vec3 0 step 0) :replace-p t))
-      (:z (rotate-transform transform (m:vec3 0 0 step) :replace-p t)))))
+  (with-slots (%manager %attrs) action
+    (let* ((transform (transform (render %manager)))
+           (angle (or (au:href %attrs :angle) (* pi 2)))
+           (step (au:map-domain 0 1 0 angle (action-step action))))
+      (ecase (or (au:href %attrs :axis) :z)
+        (:x (rotate-transform transform (m:vec3 step 0 0) :replace-p t))
+        (:y (rotate-transform transform (m:vec3 0 step 0) :replace-p t))
+        (:z (rotate-transform transform (m:vec3 0 0 step) :replace-p t))))))
 
 (defmethod on-action-finish (action (name (eql 'rotate)))
   (when (repeat-p action)
     (replace-action action 'rotate/reverse)))
 
 (defmethod on-action-update (action (name (eql 'rotate/reverse)))
-  (let* ((transform (transform (render action)))
-         (attrs (attrs action))
-         (angle (or (au:href attrs :angle) (* pi 2)))
-         (step (- angle (au:map-domain 0 1 0 angle (action-step action)))))
-    (ecase (or (au:href attrs :axis) :z)
-      (:x (rotate-transform transform (m:vec3 step 0 0) :replace-p t))
-      (:y (rotate-transform transform (m:vec3 0 step 0) :replace-p t))
-      (:z (rotate-transform transform (m:vec3 0 0 step) :replace-p t)))))
+  (with-slots (%manager %attrs) action
+    (let* ((transform (transform (render %manager)))
+           (angle (or (au:href %attrs :angle) (* pi 2)))
+           (step (- angle (au:map-domain 0 1 0 angle (action-step action)))))
+      (ecase (or (au:href %attrs :axis) :z)
+        (:x (rotate-transform transform (m:vec3 step 0 0) :replace-p t))
+        (:y (rotate-transform transform (m:vec3 0 step 0) :replace-p t))
+        (:z (rotate-transform transform (m:vec3 0 0 step) :replace-p t))))))
 
 (defmethod on-action-finish (action (name (eql 'rotate/reverse)))
   (when (repeat-p action)
@@ -54,8 +54,8 @@
   (au:when-let ((sprite (get-entity-component-by-type (entity action) 'sprite))
                 (step (action-step action)))
     (with-slots (%initial-index %index %frames) sprite
-      (setf %index (floor
-                    (au:map-domain 0 1 %initial-index (1- (+ %initial-index %frames)) step))))))
+      (let ((i (1- (+ %initial-index %frames))))
+        (setf %index (floor (au:map-domain 0 1 %initial-index i step)))))))
 
 (defmethod on-action-finish (action (name (eql 'sprite-animate)))
   (when (repeat-p action)
