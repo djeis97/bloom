@@ -21,7 +21,13 @@
            #:define-shader-struct
            #:define-texture
            #:define-texture-profile
+           #:entity
            #:game-state
+           #:get-entity-component-by-type
+           #:input-enter-p
+           #:input-enabled-p
+           #:input-exit-p
+           #:make-action
            #:make-action-from-existing
            #:make-shader-blocks
            #:make-shader-buffer
@@ -41,6 +47,7 @@
            #:render
            #:rotate
            #:rotate-transform
+           #:scale-transform
            #:shader-modified-post-hook
            #:sprite
            #:sprite-animate
@@ -50,6 +57,8 @@
            #:switch-scene
            #:tag
            #:transform
+           #:translate
+           #:translate-transform
            #:uniforms
            #:value
            #:write-shader-buffer))
