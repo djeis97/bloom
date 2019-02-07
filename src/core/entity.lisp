@@ -1,7 +1,9 @@
 (in-package :bloom)
 
 (defclass entity ()
-  ((%id :reader id
+  ((%game-state :reader game-state
+                :initarg :game-state)
+   (%id :reader id
         :initarg :id)
    (%state :accessor state
            :initform :create-pending)
@@ -27,7 +29,10 @@
 (defun make-entity (game-state &key prefab-node)
   (let* ((id (au:unique-name (au:format-symbol *package* "~:@(~a~)-" (name prefab-node))))
          (scene (active-scene game-state))
-         (entity (make-instance 'entity :id id :prefab-node prefab-node)))
+         (entity (make-instance 'entity
+                                :id id
+                                :game-state game-state
+                                :prefab-node prefab-node)))
     (setf (au:href (entities scene) :create-pending entity) entity)
     entity))
 

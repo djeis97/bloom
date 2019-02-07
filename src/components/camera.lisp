@@ -10,14 +10,21 @@
   (clip-far 1024)
   (fov-y 45.0)
   (zoom 1)
-  (transform nil))
+  (transform nil)
+  (target nil))
 
 (defun set-camera-view (camera)
-  (let* ((model (model (transform camera)))
-         (eye (m:get-translation model))
-         (target (m:+ eye (m:negate (m:vec3 (m:get-column model 2)))))
-         (up (m:vec3 (m:get-column model 1))))
-    (m:set-view eye target up (view camera))))
+  (with-slots (%target) camera
+    (let* ((camera-model (model (transform camera)))
+           (eye (if %target
+                    (m:+ (m:get-translation camera-model)
+                         (m:get-translation
+                          (model (get-entity-component-by-type
+                                  %target 'transform))))
+                    (m:get-translation camera-model)))
+           (target (m:+ eye (m:negate (m:vec3 (m:get-column camera-model 2)))))
+           (up (m:vec3 (m:get-column camera-model 1))))
+      (m:set-view eye target up (view camera)))))
 
 (defmethod set-camera-projection ((mode (eql :orthographic)) camera game-state)
   (with-slots (%clip-near %clip-far %zoom %projection) camera
@@ -53,6 +60,10 @@
                            ((:orthographic :isometric) (m:vec3 0 0 1))
                            (:perspective (m:vec3 0 0 50)))))
         (translate-transform %transform translation)))))
+
+(defun switch-camera-target (target)
+  (let ((camera (camera (active-scene (game-state target)))))
+    (setf (target camera) target)))
 
 ;;; Component event hooks
 
