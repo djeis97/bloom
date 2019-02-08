@@ -9,9 +9,11 @@
               :initform nil)
    (%root-node :accessor root-node)
    (%entities :reader entities
-              :initform (make-entity-tables))
+              :initform (make-entity-table))
    (%components :reader components
-                :initform (make-component-tables))
+                :initform (make-component-table))
+   (%actions :reader actions
+             :initform (make-action-table))
    (%camera :accessor camera
             :initform nil)))
 

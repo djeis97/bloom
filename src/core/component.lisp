@@ -37,7 +37,7 @@
                         :initarg ,(au:make-keyword name)
                         :initform ,value))))))
 
-(defun make-component-tables ()
+(defun make-component-table ()
   (au:dict #'eq
            :create-pending (au:dict #'eq)
            :created (au:dict #'eq)

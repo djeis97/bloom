@@ -19,7 +19,7 @@
   `(au:do-hash-values (,binding (au:href (entities (active-scene ,game-state)) :active-by-name))
      ,@body))
 
-(defun make-entity-tables ()
+(defun make-entity-table ()
   (au:dict #'eq
            :create-pending (au:dict #'eq)
            :created (au:dict #'eq)

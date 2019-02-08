@@ -313,7 +313,7 @@
     (setf (au:href (components-table node) type id)
           (list :id id :policy policy :args new-args))))
 
-(defun make-component-table (prefab)
+(defun make-prefab-component-table (prefab)
   (au:do-hash-values (node (parse-tree prefab))
     (dolist (component (components node))
       (destructuring-bind (type (&key (id 0) policy) . args) component
@@ -346,7 +346,7 @@
              (verify-components prefab)
              (insert-missing-transforms prefab)
              (copy-source-nodes prefab)
-             (make-component-table prefab)
+             (make-prefab-component-table prefab)
              (make-relationships prefab)
              (update-links prefab)
              (setf success-p t))
