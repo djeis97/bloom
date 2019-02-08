@@ -385,8 +385,7 @@
 
 (defun make-prefab-entity-relationships (game-state prefab entities)
   (labels ((get-transform (node)
-             (get-entity-component-by-type (au:href entities (path node))
-                                           'transform))
+             (get-entity-component (au:href entities (path node)) 'transform))
            (get-root-node ()
              (let ((root-node (get-transform (root prefab))))
                (setf (root-node (active-scene game-state)) root-node)

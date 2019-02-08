@@ -73,8 +73,7 @@
      (lambda (x)
        (when x
          (au:when-let* ((entity (entity x))
-                        (component (get-entity-component-by-type
-                                    entity 'transform)))
+                        (component (get-entity-component entity 'transform)))
            (pushnew component (au:href types 'transform)))))
      (root-node scene)))
   (setf (cache-dirty-p (component-data game-state)) nil))

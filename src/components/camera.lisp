@@ -17,10 +17,7 @@
 (defun set-camera-view (camera)
   (with-slots (%target %follow-z-axis-p) camera
     (let* ((target (m:get-translation
-                    (model
-                     (get-entity-component-by-type
-                      (target camera)
-                      'transform))))
+                    (model (get-entity-component (target camera) 'transform))))
            (camera-model (model (transform camera)))
            (eye (if %target
                     (m:+ (m:get-translation camera-model)
@@ -78,7 +75,7 @@
     (setf %scene (active-scene %game-state)
           (camera %scene) self
           %fov-y (* %fov-y (/ pi 180))
-          %transform (get-entity-component-by-type %entity 'transform))
+          %transform (get-entity-component %entity 'transform))
     (correct-camera-transform self)
     (set-camera-projection %mode self %game-state)))
 

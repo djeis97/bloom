@@ -25,7 +25,7 @@
 (defun set-draw-method (render)
   (with-slots (%entity %draw-method %mode) render
     (let* ((type (au:format-symbol :bloom "~a" %mode))
-           (component (get-entity-component-by-type %entity type)))
+           (component (get-entity-component %entity type)))
       (setf %draw-method
             (ecase %mode
               (:sprite (lambda () (funcall #'draw-sprite component)))
@@ -41,7 +41,7 @@
 
 (defmethod on-component-attach ((self render))
   (with-slots (%entity %transform) self
-    (setf %transform (get-entity-component-by-type %entity 'transform))
+    (setf %transform (get-entity-component %entity 'transform))
     (set-draw-method self)))
 
 (defmethod on-component-update ((self render))

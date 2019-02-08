@@ -4,7 +4,7 @@
 
 (defmethod on-action-update (action (name (eql 'fade-in)))
   (with-slots (%owner) action
-    (let ((render (get-entity-component-by-type %owner 'render)))
+    (let ((render (get-entity-component %owner 'render)))
       (setf (value (au:href (uniforms (material render)) :opacity))
             (action-step action)))))
 
@@ -14,7 +14,7 @@
 
 (defmethod on-action-update (action (name (eql 'fade-out)))
   (with-slots (%owner) action
-    (let ((render (get-entity-component-by-type %owner 'render)))
+    (let ((render (get-entity-component %owner 'render)))
       (setf (value (au:href (uniforms (material render)) :opacity))
             (- 1 (action-step action))))))
 
@@ -26,7 +26,7 @@
 
 (defmethod on-action-update (action (name (eql 'rotate)))
   (with-slots (%owner %attrs) action
-    (let* ((transform (get-entity-component-by-type %owner 'transform))
+    (let* ((transform (get-entity-component %owner 'transform))
            (angle (or (au:href %attrs :angle) (* pi 2)))
            (step (au:map-domain 0 1 0 angle (action-step action))))
       (ecase (or (au:href %attrs :axis) :z)
@@ -40,7 +40,7 @@
 
 (defmethod on-action-update (action (name (eql 'rotate/reverse)))
   (with-slots (%owner %attrs) action
-    (let* ((transform (get-entity-component-by-type %owner 'transform))
+    (let* ((transform (get-entity-component %owner 'transform))
            (angle (or (au:href %attrs :angle) (* pi 2)))
            (step (- angle (au:map-domain 0 1 0 angle (action-step action)))))
       (ecase (or (au:href %attrs :axis) :z)
@@ -55,7 +55,7 @@
 ;;; sprite-animate
 
 (defmethod on-action-update (action (name (eql 'sprite-animate)))
-  (au:when-let ((sprite (get-entity-component-by-type (owner action) 'sprite))
+  (au:when-let ((sprite (get-entity-component (owner action) 'sprite))
                 (step (action-step action)))
     (with-slots (%initial-index %index %frames) sprite
       (let ((i (1- (+ %initial-index %frames))))
@@ -69,7 +69,7 @@
 
 (defmethod on-action-update (action (name (eql 'translate)))
   (with-slots (%owner %attrs) action
-    (let* ((transform (get-entity-component-by-type %owner 'transform))
+    (let* ((transform (get-entity-component %owner 'transform))
            (offset (or (au:href %attrs :offset) 1.0))
            (step (au:map-domain 0 1 0 offset (action-step action))))
       (ecase (or (au:href %attrs :axis) :z)
@@ -83,7 +83,7 @@
 
 (defmethod on-action-update (action (name (eql 'translate/reverse)))
   (with-slots (%owner %attrs) action
-    (let* ((transform (get-entity-component-by-type %owner 'transform))
+    (let* ((transform (get-entity-component %owner 'transform))
            (offset (or (au:href %attrs :offset) 1.0))
            (step (- offset (au:map-domain 0 1 0 offset (action-step action)))))
       (ecase (or (au:href %attrs :axis) :z)

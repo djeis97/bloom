@@ -43,7 +43,7 @@
          (name (name self))
          (entity (entity self))
          (tag-data (get-tag-data game-state)))
-    (let ((existing (nth-value 1 (get-entity-component-by-type entity 'tag))))
+    (let ((existing (nth-value 1 (get-entity-component entity 'tag))))
       (dolist (x existing)
         (detach-component entity x)))
     (setf (au:href (tag->entity tag-data) name) entity

@@ -130,7 +130,7 @@
 (defun prune-tree (transform)
   (au:when-let* ((parent-transform (parent transform))
                  (parent (entity parent-transform)))
-    (au:deletef (children (get-entity-component-by-type parent 'transform)) transform))
+    (au:deletef (children (get-entity-component parent 'transform)) transform))
   (map-nodes
    (lambda (node)
      (let ((entity (entity node)))

@@ -69,18 +69,18 @@
     (dolist (component components)
       (detach-component entity component))))
 
-(defun get-entity-component-by-type (entity component-type)
+(defun get-entity-component (entity component-type)
   (let ((components (au:href (components entity) component-type)))
     (values (first components)
             (rest components))))
 
 (defun has-component-p (entity component-type)
-  (when (get-entity-component-by-type entity component-type) t))
+  (when (get-entity-component entity component-type) t))
 
 (defun insert-entity (game-state entity &key parent)
-  (let ((transform (get-entity-component-by-type entity 'transform)))
+  (let ((transform (get-entity-component entity 'transform)))
     (when parent
-      (add-child (get-entity-component-by-type parent 'transform) transform))
+      (add-child (get-entity-component parent 'transform) transform))
     (mark-component-types-dirty game-state)
     (au:do-hash-values (components (components entity))
       (dolist (component components)
@@ -89,7 +89,7 @@
 
 (defun delete-entity (entity)
   (setf (state entity) :destroy)
-  (prune-tree (get-entity-component-by-type entity 'transform))
+  (prune-tree (get-entity-component entity 'transform))
   (on-entity-delete entity))
 
 ;;; Entity event hooks

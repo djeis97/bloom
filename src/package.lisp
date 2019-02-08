@@ -1,7 +1,7 @@
 (in-package :defpackage+-user-1)
 
 (defpackage+ #:bloom
-    (:local-nicknames (#:m #:game-math))
+  (:local-nicknames (#:m #:game-math))
   (:use #:cl)
   (:export #:action
            #:action-step
@@ -23,7 +23,7 @@
            #:define-texture-profile
            #:entity
            #:game-state
-           #:get-entity-component-by-type
+           #:get-entity-component
            #:input-enter-p
            #:input-enabled-p
            #:input-exit-p
