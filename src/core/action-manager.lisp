@@ -9,6 +9,12 @@
 (defclass action ()
   ((%manager :reader manager
              :initarg :manager)
+   (%owner :reader owner
+           :initarg :owner)
+   (%state :accessor state
+           :initform :create-pending)
+   (%location :reader location
+              :initform :tail)
    (%node :accessor node)
    (%type :reader action-type
           :initarg :type)
@@ -41,13 +47,18 @@
   (with-slots (%attrs) instance
     (setf %attrs (au:plist->hash %attrs :test #'eq))))
 
+(defun make-action-table ()
+  (au:dict #'eq
+           :create-pending (au:dict #'eq)
+           :created (au:dict #'eq)
+           :active-by-type (au:dict #'eq)))
+
 (defun insert-action (action where &key target)
   (with-slots (%manager %type) action
     (let* ((action-list (action-list %manager))
            (node (dll:insert-dlist-node where action-list %type action
                                         :target-key target)))
       (setf (node action) node)
-      (on-action-insert action %type)
       action)))
 
 (defun remove-action (action)
@@ -63,10 +74,10 @@
   (with-slots (%shape %elapsed %duration) action
     (funcall %shape (au:clamp (/ %elapsed %duration) 0f0 1f0))))
 
-(defun make-action (entity position &rest args)
-  (let* ((manager (manager (get-entity-component-by-type entity 'actions)))
-         (action (apply #'make-instance 'action :manager manager args)))
-    (apply #'insert-action action position)))
+(defun make-action (entity &rest args)
+  (let ((action-table (actions (active-scene (game-state entity))))
+        (action (apply #'make-instance 'action :owner entity args)))
+    (setf (au:href action-table :create-pending action) action)))
 
 (defun make-default-actions (manager action-specs)
   (dolist (spec action-specs)
