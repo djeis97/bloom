@@ -11,16 +11,22 @@
   (fov-y 45.0)
   (zoom 1)
   (transform nil)
-  (target nil))
+  (target nil)
+  (follow-z-axis-p nil))
 
 (defun set-camera-view (camera)
-  (with-slots (%target) camera
-    (let* ((camera-model (model (transform camera)))
+  (with-slots (%target %follow-z-axis-p) camera
+    (let* ((target (m:get-translation
+                    (model
+                     (get-entity-component-by-type
+                      (target camera)
+                      'transform))))
+           (camera-model (model (transform camera)))
            (eye (if %target
                     (m:+ (m:get-translation camera-model)
-                         (m:get-translation
-                          (model (get-entity-component-by-type
-                                  %target 'transform))))
+                         (if %follow-z-axis-p
+                             target
+                             (m:vec3 (m:vec2 target))))
                     (m:get-translation camera-model)))
            (target (m:+ eye (m:negate (m:vec3 (m:get-column camera-model 2)))))
            (up (m:vec3 (m:get-column camera-model 1))))

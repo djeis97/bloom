@@ -1,7 +1,7 @@
 (in-package :defpackage+-user-1)
 
 (defpackage+ #:bloom
-  (:local-nicknames (#:m #:game-math))
+    (:local-nicknames (#:m #:game-math))
   (:use #:cl)
   (:export #:action
            #:action-step
@@ -55,6 +55,7 @@
            #:start-engine
            #:stop-engine
            #:storage
+           #:switch-camera-target
            #:switch-scene
            #:tag
            #:transform
