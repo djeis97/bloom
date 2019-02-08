@@ -78,10 +78,13 @@
      (:file "mesh")
      (:file "sprite")
      (:file "render")))
+   (:module "actions"
+    :components
+    ((:file "translate")
+     (:file "rotate")
+     (:file "fade")
+     (:file "sprite-animate")))
    (:module "prefab"
     :components
     ((:file "checks")
-     (:file "prefab")))
-   (:module "addons"
-    :components
-    ((:file "actions")))))
+     (:file "prefab")))))

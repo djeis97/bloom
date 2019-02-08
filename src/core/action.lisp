@@ -19,25 +19,18 @@
    (%finished-p :accessor finished-p
                 :initarg :finished-p
                 :initform nil)
-   (%self-finishing-p :reader self-finishing-p
-                      :initarg :self-finishing-p
-                      :initform nil)
    (%blocking-p :reader blocking-p
                 :initarg :blocking-p
                 :initform nil)
    (%repeat-p :reader repeat-p
               :initarg :repeat-p
               :initform nil)
+   (%reverse-p :accessor reverse-p
+               :initarg :reverse-p
+               :initform nil)
    (%shape :reader shape
            :initarg :shape
-           :initform 'm:linear)
-   (%attrs :reader attrs
-           :initarg :attrs
-           :initform nil)))
-
-(defmethod initialize-instance :after ((instance action) &key &allow-other-keys)
-  (with-slots (%attrs) instance
-    (setf %attrs (au:plist->hash %attrs :test #'eq))))
+           :initform 'm:linear)))
 
 (defun make-action-table ()
   (au:dict #'eq
@@ -51,16 +44,12 @@
            (node (dll:insert-dlist-node where actions %type action
                                         :target-key target)))
       (setf (node action) node)
+      (on-action-insert action)
       action)))
 
 (defun remove-action (action)
   (with-slots (%owner %type) action
     (dll:remove-dlist-node (actions %owner) %type)))
-
-(defun replace-action (action type &rest args)
-  (let ((action (apply #'reinitialize-instance action
-                       :type type :elapsed 0 :finished-p nil args)))
-    (dll:update-dlist-node-key (node action) type)))
 
 (defun action-step (action)
   (with-slots (%shape %elapsed %duration) action
@@ -68,36 +57,43 @@
 
 (defun make-action (entity &rest args)
   (let ((action-table (actions (active-scene (game-state entity))))
-        (action (apply #'make-instance 'action :owner entity args)))
+        (action (apply #'make-instance 'action
+                       :owner entity
+                       :allow-other-keys t
+                       args)))
+    (apply #'change-class action (getf args :type) args)
     (setf (au:href action-table :create-pending action) action)))
 
 (defun process-actions (actions)
-  (loop :for (type . action) :in (dll:dlist-elements actions)
-        :do (on-action-update action type)
+  (loop :for (nil . action) :in (dll:dlist-elements actions)
+        :do (on-action-update action)
         :when (finished-p action)
-          :do (on-action-finish action type)
+          :do (on-action-finish action)
         :when (blocking-p action)
           :do (return)))
 
 ;;; Action event hooks
 
-(defgeneric on-action-insert (action type)
-  (:method (action type)))
+(defgeneric on-action-insert (action)
+  (:method (action)))
 
-(defgeneric on-action-finish (action type)
-  (:method (action type))
-  (:method :around (action type)
-    (with-slots (%owner) action
+(defgeneric on-action-finish (action)
+  (:method (action))
+  (:method :around (action)
+    (with-slots (%type %owner %elapsed %finished-p %repeat-p %reverse-p) action
+      (when %repeat-p
+        (setf %reverse-p (not %reverse-p)
+              %elapsed 0
+              %finished-p nil))
       (call-next-method)
       (v:trace :bloom.action "Action ~a finished for actor ~a."
-               type (id %owner)))))
+               %type (id %owner)))))
 
-(defgeneric on-action-update (action type)
-  (:method (action type))
-  (:method :before (action type)
-    (with-slots (%owner %elapsed %self-finishing-p %duration %finished-p) action
+(defgeneric on-action-update (action)
+  (:method (action))
+  (:method :before (action)
+    (with-slots (%owner %elapsed %duration %finished-p) action
       (with-slots (%game-state) %owner
         (incf %elapsed (frame-time (frame-manager %game-state)))
-        (when (and (not %self-finishing-p)
-                   (>= %elapsed %duration))
+        (when (>= %elapsed %duration)
           (setf %finished-p t))))))

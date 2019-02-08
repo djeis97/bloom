@@ -3,12 +3,21 @@
 (defpackage+ #:bloom
   (:local-nicknames (#:m #:game-math))
   (:use #:cl)
+
+  ;; actions
   (:export #:action
+           #:make-action
+           #:on-action-insert
+           #:on-action-update
+           #:on-action-finish
            #:action-step
-           #:attrs
-           #:cache-lookup
+           #:action/fade
+           #:action/sprite-animate
+           #:action/translate
+           #:action/rotate)
+
+  (:export #:cache-lookup
            #:camera
-           #:cycle-p
            #:define-component
            #:define-framebuffer
            #:define-material
@@ -27,17 +36,12 @@
            #:input-enter-p
            #:input-enabled-p
            #:input-exit-p
-           #:make-action
-           #:make-action-from-existing
            #:make-shader-blocks
            #:make-shader-buffer
            #:make-entity
            #:make-scene
            #:material
            #:mesh
-           #:on-action-insert
-           #:on-action-finish
-           #:on-action-update
            #:on-component-attach
            #:on-component-create
            #:on-component-destroy
@@ -46,12 +50,10 @@
            #:on-component-render
            #:print-prefab
            #:render
-           #:rotate
            #:rotate-transform
            #:scale-transform
            #:shader-modified-post-hook
            #:sprite
-           #:sprite-animate
            #:start-engine
            #:stop-engine
            #:storage
@@ -59,7 +61,6 @@
            #:switch-scene
            #:tag
            #:transform
-           #:translate
            #:translate-transform
            #:uniforms
            #:value

@@ -33,8 +33,7 @@
         (pushnew v (au:href action-table :active-by-type %type))
         (setf (au:href entity-table :actions %owner) (actions %owner)
               %state :active)
-        (apply #'insert-action v (au:ensure-list %location))
-        (on-action-insert v %type)))
+        (apply #'insert-action v (au:ensure-list %location))))
     (flow/actions/process game-state)))
 
 (defun flow/actions/process (game-state)
