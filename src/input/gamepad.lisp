@@ -1,13 +1,13 @@
 (in-package :bloom)
 
 (au:define-constant +gamepad-axis-names+
-    #((:left-stick :x) (:left-stick :y) (:right-stick :x) (:right-stick :y) (:triggers :x)
-      (:triggers :y))
+    #((:left-stick :x) (:left-stick :y) (:right-stick :x) (:right-stick :y)
+      (:triggers :x) (:triggers :y))
   :test #'equalp)
 
 (au:define-constant +gamepad-button-names+
-    #(:a :b :x :y :back :guide :start :left-stick-button :right-stick-button :left-shoulder
-      :right-shoulder :up :down :left :right)
+    #(:a :b :x :y :back :guide :start :left-stick-button :right-stick-button
+      :left-shoulder :right-shoulder :up :down :left :right)
   :test #'equalp)
 
 (defclass gamepad-manager ()
@@ -56,7 +56,7 @@
           (:x (au:map-domain -32767 32767 -1 1 clamped))
           (:y (au:map-domain -32767 32767 1 -1 clamped))))))
 
-(defmethod %get-gamepad-analog ((deadzone-type (eql :axial)) analog-state)
+(defmethod %get-gamepad-analog ((deadzone (eql :axial)) analog-state)
   (let ((x (x analog-state))
         (y (y analog-state)))
     (m:with-vec2 ((v (m:vec2 x y)))
@@ -64,7 +64,7 @@
       (values v.x v.y))))
 
 
-(defmethod %get-gamepad-analog ((deadzone-type (eql :radial)) analog-state)
+(defmethod %get-gamepad-analog ((deadzone (eql :radial)) analog-state)
   (let ((x (x analog-state))
         (y (y analog-state)))
     (m:with-vec2 ((v (m:vec2 x y)))
@@ -72,7 +72,7 @@
           (values 0f0 0f0)
           (values v.x v.y)))))
 
-(defmethod %get-gamepad-analog ((deadzone-type (eql :radial-scaled)) analog-state)
+(defmethod %get-gamepad-analog ((deadzone (eql :radial-scaled)) analog-state)
   (let ((x (x analog-state))
         (y (y analog-state))
         (deadzone (deadzone analog-state)))
@@ -91,7 +91,8 @@
      (resolve-path :misc "gamepads.txt")))))
 
 (defun enable-background-gamepad-events ()
-  (sdl2-ffi.functions:sdl-set-hint sdl2-ffi:+sdl-hint-joystick-allow-background-events+ "1"))
+  (sdl2-ffi.functions:sdl-set-hint
+   sdl2-ffi:+sdl-hint-joystick-allow-background-events+ "1"))
 
 (defun prepare-gamepads ()
   (load-gamepad-database)
@@ -110,10 +111,11 @@
     (let* ((handle (sdl2:game-controller-open gamepad-index))
            (instance (sdl2:game-controller-instance-id handle))
            (id (generate-gamepad-id))
-           (gamepad (make-instance 'gamepad :id id
-                                            :instance instance
-                                            :name (sdl2:game-controller-name handle)
-                                            :handle handle)))
+           (gamepad (make-instance 'gamepad
+                                   :id id
+                                   :instance instance
+                                   :name (sdl2:game-controller-name handle)
+                                   :handle handle)))
       (setf (au:href (instances *gamepad-manager*) instance) gamepad
             (au:href (ids *gamepad-manager*) id) gamepad)
       (input-transition-in input-data (list id :attach)))))

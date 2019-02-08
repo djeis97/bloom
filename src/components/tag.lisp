@@ -34,7 +34,8 @@
 ;;; Component event hooks
 
 (defmethod on-component-create ((self tag))
-  (symbol-macrolet ((tag-storage (au:href (storage (game-state self)) 'tag-data)))
+  (symbol-macrolet ((tag-storage (au:href (storage (game-state self))
+                                          'tag-data)))
     (unless tag-storage
       (setf tag-storage (make-instance 'tag-data)))))
 
@@ -58,9 +59,11 @@
 (defgeneric on-entity-tag (entity tag-name)
   (:method (entity tag-name))
   (:method :after (entity tag-name)
-    (v:trace :bloom.component.tag.added "Added tag ~s to entity ~a." tag-name (id entity))))
+    (v:trace :bloom.component.tag.added "Added tag ~s to entity ~a."
+             tag-name (id entity))))
 
 (defgeneric on-entity-untag (entity tag-name)
   (:method (entity tag-name))
   (:method :after (entity tag-name)
-    (v:trace :bloom.component.tag.remove "Removed tag ~s from entity ~a." tag-name (id entity))))
+    (v:trace :bloom.component.tag.remove "Removed tag ~s from entity ~a."
+             tag-name (id entity))))

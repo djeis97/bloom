@@ -52,7 +52,8 @@
 ;;; Component event hooks
 
 (defmethod on-component-create ((self group))
-  (symbol-macrolet ((group-storage (au:href (storage (game-state self)) 'group-data)))
+  (symbol-macrolet ((group-storage (au:href (storage (game-state self))
+                                            'group-data)))
     (unless group-storage
       (setf group-storage (make-instance 'group-data)))))
 
@@ -69,12 +70,14 @@
 (defgeneric on-group-join (entity group-name)
   (:method (entity group-name))
   (:method :after (entity group-name)
-    (v:debug :bloom.component.group.join "Entity ~a has joined group ~s." (id entity) group-name)))
+    (v:debug :bloom.component.group.join "Entity ~a has joined group ~s."
+             (id entity) group-name)))
 
 (defgeneric on-group-leave (entity group-name)
   (:method (entity group-name))
   (:method :after (entity group-name)
-    (v:debug :bloom.component.group.leave "Entity ~a has left group ~s." (id entity) group-name)))
+    (v:debug :bloom.component.group.leave "Entity ~a has left group ~s."
+             (id entity) group-name)))
 
 (defgeneric on-group-delete (group-name)
   (:method (group-name))

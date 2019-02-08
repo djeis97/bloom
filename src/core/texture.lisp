@@ -27,7 +27,8 @@
   (au:with-unique-names (profile)
     `(let ((,profile (make-instance 'texture-profile :name ',name)))
        (setf ,@(loop :for (attribute value) :on (car body) :by #'cddr
-                     :append `((au:href (attributes ,profile) ,attribute) ,value))
+                     :append `((au:href (attributes ,profile) ,attribute)
+                               ,value))
              (au:href *texture-profiles* ',name) ,profile)
        (update-texture-definitions ,profile))))
 
@@ -95,7 +96,8 @@
                  :for profile = (find-texture-profile profile-name)
                  :do (au:do-hash (k v (attributes profile))
                        (setf (au:href (attributes ,definition) k) v)))
-           (setf (attributes ,definition) (au:merge-tables (attributes ,definition) ,attributes)
+           (setf (attributes ,definition) (au:merge-tables
+                                           (attributes ,definition) ,attributes)
                  (au:href *texture-definitions* ',name) ,definition))))))
 
 ;;; Textures
@@ -171,7 +173,8 @@
   (let* ((definition (definition texture))
          (target (texture-type definition)))
     (dolist (parameter +texture-parameters+)
-      (gl:tex-parameter target parameter (get-texture-attribute texture parameter)))))
+      (gl:tex-parameter
+       target parameter (get-texture-attribute texture parameter)))))
 
 (defgeneric %make-texture (type texture data &key &allow-other-keys))
 
@@ -187,7 +190,8 @@
                      (pixel-type image)
                      (data image))))
 
-(defmethod %make-texture ((type (eql :texture-2d)) texture (data null) &key width height)
+(defmethod %make-texture ((type (eql :texture-2d)) texture (data null)
+                          &key width height)
   (gl:tex-image-2d type
                    0
                    (get-texture-attribute texture :internal-format)
@@ -200,7 +204,8 @@
 
 (defun %load-texture (definition &rest args)
   (unless definition
-    (error "Cannot load texture because texture definition named ~s could not be found."
+    (error "Cannot load texture because texture definition named ~s could not ~
+            be found."
            (name definition)))
   (let* ((id (gl:gen-texture))
          (texture (make-instance 'texture :id id :definition definition))

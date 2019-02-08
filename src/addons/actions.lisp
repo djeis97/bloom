@@ -67,6 +67,14 @@
 
 ;; translate
 
+(defclass action/translate (action)
+  ((%axis :accessor axis
+          :initarg :axis
+          :initform :z)
+   (%offset :accessor offset
+            :initarg :offset
+            :initform 1.0)))
+
 (defmethod on-action-update (action (name (eql 'translate)))
   (with-slots (%owner %attrs) action
     (let* ((transform (get-entity-component %owner 'transform))

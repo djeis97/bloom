@@ -49,7 +49,8 @@
          (entity-table (entities scene))
          (component-table (components scene)))
     (when (or (plusp (hash-table-count (au:href entity-table :create-pending)))
-              (plusp (hash-table-count (au:href component-table :create-pending))))
+              (plusp (hash-table-count
+                      (au:href component-table :create-pending))))
       (flow/create/components game-state))))
 
 (defun flow/create/components (game-state)

@@ -17,10 +17,6 @@
 (au:define-printer (entity stream :type t :identity t)
   (format stream "~a" (id entity)))
 
-(defmacro do-entities ((game-state binding) &body body)
-  `(au:do-hash-values (,binding (au:href (entities (active-scene ,game-state)) :active-by-name))
-     ,@body))
-
 (defun make-entity-table ()
   (au:dict #'eq
            :create-pending (au:dict #'eq)
@@ -30,7 +26,8 @@
            :actions (au:dict #'eq)))
 
 (defun make-entity (game-state &key prefab-node)
-  (let* ((id (au:unique-name (au:format-symbol *package* "~:@(~a~)-" (name prefab-node))))
+  (let* ((id (au:unique-name
+              (au:format-symbol *package* "~:@(~a~)-" (name prefab-node))))
          (scene (active-scene game-state))
          (entity (make-instance 'entity
                                 :id id

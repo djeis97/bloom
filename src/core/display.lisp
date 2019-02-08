@@ -22,15 +22,17 @@
                  (sdl2::sdl-rc-error ()
                    (if (= current-value -1)
                        (try 1)
-                       (v:warn :bloom.display.vsync
-                               "Ignoring vsync option due to driver limitation."))))))
+                       (v:warn
+                        :bloom.display.vsync
+                        "Ignoring vsync option due to driver limitation."))))))
       (try value))))
 
 (defgeneric create-window (game-state)
   (:method :before ((game-state game-state))
     (let ((opengl-version (option game-state :opengl-version))
           (anti-alias-level (option game-state :anti-alias-level)))
-      (au:mvlet ((major-version minor-version (parse-opengl-version-string opengl-version)))
+      (au:mvlet ((major-version minor-version (parse-opengl-version-string
+                                               opengl-version)))
         (sdl2:gl-set-attrs :context-major-version major-version
                            :context-minor-version minor-version
                            :context-profile-mask 1
@@ -52,10 +54,11 @@
     (maybe-set-vsync (option game-state :vsync))))
 
 (defun make-display (game-state)
-  (let ((window (create-window game-state)))
+  (let ((window (create-window game-state))
+        (refresh-rate (nth-value 3 (sdl2:get-current-display-mode 0))))
     (make-instance 'display :game-state game-state
                             :window window
-                            :refresh-rate (nth-value 3 (sdl2:get-current-display-mode 0)))))
+                            :refresh-rate refresh-rate)))
 
 (defun clear-screen (display)
   (let* ((game-state (game-state display))

@@ -65,15 +65,18 @@
 
 (defun transform-node (game-state node)
   (let ((delta (delta (frame-manager game-state))))
-    (with-slots (%previous %current %incremental-delta %incremental) (scaling node)
-      (m:copy-into %previous %current)
-      (m:+ %current (m:* %incremental delta %incremental-delta) %current))
-    (with-slots (%previous %current %incremental-delta %incremental) (rotation node)
-      (m:copy-into %previous %current)
-      (m:rotate :local %current (m:* %incremental delta %incremental-delta) %current))
-    (with-slots (%previous %current %incremental-delta %incremental) (translation node)
-      (m:copy-into %previous %current)
-      (m:+ %current (m:* %incremental delta %incremental-delta) %current))))
+    (with-slots (%scaling %rotation %translation) node
+      (with-slots (%previous %current %incremental-delta %incremental) %scaling
+        (m:copy-into %previous %current)
+        (m:+ %current (m:* %incremental delta %incremental-delta) %current))
+      (with-slots (%previous %current %incremental-delta %incremental) %rotation
+        (m:copy-into %previous %current)
+        (m:rotate :local %current (m:* %incremental delta %incremental-delta)
+                  %current))
+      (with-slots (%previous %current %incremental-delta %incremental)
+          %translation
+        (m:copy-into %previous %current)
+        (m:+ %current (m:* %incremental delta %incremental-delta) %current)))))
 
 (defun resolve-local (node alpha)
   (with-slots (%local %scaling %rotation %translation) node

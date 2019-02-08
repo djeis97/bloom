@@ -32,7 +32,8 @@
                  (declare (ignore game-state))
                  value)
                (lambda (game-state)
-                 (option game-state (au:format-symbol ::keyword "WINDOW-~A" dimension))))))
+                 (option game-state (au:format-symbol ::keyword "WINDOW-~A"
+                                                      dimension))))))
     (destructuring-bind (name &key point (type :render-buffer) width height) spec
       (make-instance 'framebuffer-attachment-definition
                      :name name
@@ -47,10 +48,13 @@
 (defmacro define-framebuffer (name () &body body)
   (au:with-unique-names (definition attachment)
     (destructuring-bind (&key (mode :read/write) attachments) (car body)
-      `(let* ((,definition (make-instance 'framebuffer-definition :name ',name :mode ',mode)))
+      `(let* ((,definition (make-instance 'framebuffer-definition
+                                          :name ',name
+                                          :mode ',mode)))
          (dolist (spec ',attachments)
            (let ((,attachment (make-framebuffer-attachment-definition spec)))
-             (setf (au:href (attachments ,definition) (name ,attachment)) ,attachment)))
+             (setf (au:href (attachments ,definition) (name ,attachment))
+                   ,attachment)))
          (setf (au:href *framebuffer-definitions* ',name) ,definition)))))
 
 ;;; Framebuffers
@@ -101,7 +105,8 @@
 (defun framebuffer-attachment-names->points (framebuffer attachment-names)
   (mapcar
    (lambda (x)
-     (let ((attachment (find-framebuffer-attachment-definition (definition framebuffer) x)))
+     (let ((attachment (find-framebuffer-attachment-definition
+                        (definition framebuffer) x)))
        (framebuffer-attachment-point->gl (point attachment))))
    attachment-names))
 
@@ -122,15 +127,19 @@
 
 (defun framebuffer-attach (game-state framebuffer attachment-name)
   (let* ((definition (definition framebuffer))
-         (attachment (find-framebuffer-attachment-definition definition attachment-name)))
+         (attachment (find-framebuffer-attachment-definition
+                      definition attachment-name)))
     (ecase (attachment-type attachment)
-      (:render-buffer (framebuffer-attach/render-buffer game-state framebuffer attachment))
-      (:texture (framebuffer-attach/texture game-state framebuffer attachment)))))
+      (:render-buffer (framebuffer-attach/render-buffer
+                       game-state framebuffer attachment))
+      (:texture (framebuffer-attach/texture
+                 game-state framebuffer attachment)))))
 
 (defun find-framebuffer-texture-id (game-state framebuffer-name attachment-name)
   (let* ((framebuffer (find-framebuffer game-state framebuffer-name))
          (definition (definition framebuffer))
-         (attachment (find-framebuffer-attachment-definition definition attachment-name))
+         (attachment (find-framebuffer-attachment-definition
+                      definition attachment-name))
          (point (framebuffer-attachment-point->gl (point attachment))))
     (au:href (attachments framebuffer) point)))
 
@@ -164,7 +173,8 @@
       (gl:bind-renderbuffer target 0)
       (with-framebuffer (framebuffer)
         (gl:framebuffer-renderbuffer framebuffer-target point target buffer-id)
-        (ensure-framebuffer-complete framebuffer framebuffer-target buffer-id point))
+        (ensure-framebuffer-complete
+         framebuffer framebuffer-target buffer-id point))
       (setf (au:href (attachments framebuffer) point) buffer-id)
       buffer-id)))
 
@@ -176,7 +186,8 @@
            (width (funcall %width game-state))
            (height (funcall %height game-state))
            (buffer-id (load-texture game-state
-                                    (au:format-symbol :bloom "FRAMEBUFFER-~a" (car %point))
+                                    (au:format-symbol :bloom "FRAMEBUFFER-~a"
+                                                      (car %point))
                                     :width width
                                     :height height))
            (point (framebuffer-attachment-point->gl %point)))

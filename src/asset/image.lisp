@@ -32,7 +32,8 @@
 (defun get-loader-type (path)
   (let ((extension (get-image-extension-keyword path)))
     (ecase extension
-      ((:tga :bmp :pbm :pgm :ppm :xpm :xcf :pcx :gif :jpg :jpeg :tif :tiff :lbm :iff :png)
+      ((:tga :bmp :pbm :pgm :ppm :xpm :xcf :pcx :gif :jpg :jpeg :tif :tiff :lbm
+        :iff :png)
        :sdl2-image))))
 
 (defmethod get-pixel-size ((image image))
@@ -68,9 +69,12 @@
 (defun get-surface-channel-count (surface)
   (let ((format (sdl2:surface-format-format surface)))
     (ecase format
-      ((:index8) 1)
-      ((:rgb24 :bgr24 :rgb888 :bgr888) 3)
-      ((:argb8888 :rgba8888 :abgr8888 :bgra8888 :rgba32 :argb32 :bgra32 :abgr32) 4))))
+      (:index8
+       1)
+      ((:rgb24 :bgr24 :rgb888 :bgr888)
+       3)
+      ((:argb8888 :rgba8888 :abgr8888 :bgra8888 :rgba32 :argb32 :bgra32 :abgr32)
+       4))))
 
 (defun get-surface-pixel-format (surface)
   (let ((format (sdl2:surface-format-format surface)))

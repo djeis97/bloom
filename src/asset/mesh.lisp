@@ -75,7 +75,8 @@
 
 (defgeneric parse-chunk-data (gltf chunk-type chunk)
   (:method :around (gltf chunk-type chunk)
-    (parsley:with-buffer-read (:sequence (parsley:read-bytes (chunk-length chunk)))
+    (parsley:with-buffer-read (:sequence (parsley:read-bytes
+                                          (chunk-length chunk)))
       (call-next-method))))
 
 (defmethod parse-chunk-data (gltf (chunk-type (eql :json-content)) chunk)
@@ -179,7 +180,8 @@
 (defun make-gpu-buffer (gltf target accessor)
   (let ((buffer-view-index (get-property gltf "bufferView" accessor)))
     (unless (member buffer-view-index (allocated-views gltf))
-      (let* ((buffer-view (elt (get-property gltf "bufferViews") buffer-view-index))
+      (let* ((buffer-view (elt (get-property gltf "bufferViews")
+                               buffer-view-index))
              (index (get-property gltf "buffer" buffer-view))
              (offset (+ (or (get-property gltf "byteOffset" accessor) 0)
                         (or (get-property gltf "byteOffset" buffer-view) 0)))
@@ -228,7 +230,8 @@
                  (accessor (elt (get-property gltf "accessors") indices)))
     (setf (element-count primitive) (get-property gltf "count" accessor)
           (component-type primitive) (get-component-type gltf accessor)
-          (index-buffer primitive) (make-gpu-buffer gltf :element-array-buffer accessor)
+          (index-buffer primitive) (make-gpu-buffer
+                                    gltf :element-array-buffer accessor)
           (draw-func primitive)
           (lambda (&key (instances 1))
             (gl:bind-vertex-array (vao primitive))

@@ -20,12 +20,14 @@
 
 (defun resolve-path/relative (group-name file-name)
   (let ((group (au:href *resource-groups* (au:make-keyword group-name))))
-    (uiop:merge-pathnames* file-name (uiop:ensure-directory-pathname (path group)))))
+    (uiop:merge-pathnames* file-name
+                           (uiop:ensure-directory-pathname (path group)))))
 
 (defun resolve-path (group-name file-name)
   (let ((group (au:href *resource-groups* (au:make-keyword group-name))))
     (uiop:merge-pathnames*
      (resolve-path/relative group-name file-name)
      (if *release-p*
-         (uiop:pathname-directory-pathname (first (uiop:raw-command-line-arguments)))
+         (uiop:pathname-directory-pathname
+          (first (uiop:raw-command-line-arguments)))
          (asdf:system-source-directory (project group))))))

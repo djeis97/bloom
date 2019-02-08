@@ -33,7 +33,8 @@
   (with-slots (%clip-near %clip-far %zoom %projection) camera
     (let ((w (/ (option game-state :window-width) %zoom 2))
           (h (/ (option game-state :window-height) %zoom 2)))
-      (m:set-projection/orthographic (- w) w (- h) h %clip-near %clip-far %projection))))
+      (m:set-projection/orthographic
+       (- w) w (- h) h %clip-near %clip-far %projection))))
 
 (defmethod set-camera-projection ((mode (eql :perspective)) camera game-state)
   (with-slots (%fov-y %zoom %clip-near %clip-far %projection) camera
@@ -49,7 +50,8 @@
   (with-slots (%rotation) (transform camera)
     (let ((rotation (m:vec3 (- (asin (/ (sqrt 3)))) 0 (/ pi 4))))
       (set-camera-projection :orthographic camera game-state)
-      (setf (current %rotation) (m:inverse (m:rotate :local m:+id-quat+ rotation))))))
+      (setf (current %rotation) (m:inverse
+                                 (m:rotate :local m:+id-quat+ rotation))))))
 
 (defun zoom-camera (game-state offset)
   (let ((camera (camera (active-scene game-state))))

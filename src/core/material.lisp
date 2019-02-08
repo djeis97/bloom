@@ -38,15 +38,22 @@
 (defmacro define-material (id (&optional base) &body body)
   (au:with-unique-names (base-material base-uniforms uniforms-table)
     (destructuring-bind (&key shader target uniforms) (car body)
-      `(let* ((,uniforms-table (make-material-definition-uniform-table ,uniforms))
+      `(let* ((,uniforms-table (make-material-definition-uniform-table
+                                ,uniforms))
               (,base-material (find-material-definition ',base))
-              (,base-uniforms (copy-material-definition-uniforms ,base-material)))
+              (,base-uniforms (copy-material-definition-uniforms
+                               ,base-material)))
          (setf (au:href *material-definitions* ',id)
                (make-instance 'material-definition
                               :id ',id
-                              :shader (or ',shader (and ,base-material (shader ,base-material)))
-                              :target (or ',target (and ,base-material (target ,base-material)))
-                              :uniforms (au:merge-tables ,base-uniforms ,uniforms-table)))))))
+                              :shader (or ',shader
+                                          (and ,base-material
+                                               (shader ,base-material)))
+                              :target (or ',target
+                                          (and ,base-material
+                                               (target ,base-material)))
+                              :uniforms (au:merge-tables ,base-uniforms
+                                                         ,uniforms-table)))))))
 
 (defclass material ()
   ((%id :reader id
@@ -79,11 +86,13 @@
             :initarg :binder)))
 
 (defun make-material (definition render)
-  (destructuring-bind (&key framebuffer attachments clear-buffers) (target definition)
+  (destructuring-bind (&key framebuffer attachments clear-buffers)
+      (target definition)
     (let* ((game-state (game-state render))
            (shader (or (shader render) (shader definition)))
            (framebuffer (find-framebuffer game-state framebuffer))
-           (attachments (framebuffer-attachment-names->points framebuffer attachments))
+           (attachments (framebuffer-attachment-names->points
+                         framebuffer attachments))
            (program (shadow:find-program shader))
            (uniforms (au:plist->hash (uniforms render) :test #'eq))
            (material (make-instance 'material
@@ -108,7 +117,8 @@
       (make-instance 'material-uniform
                      :name name
                      :type type
-                     :value (transform-uniform (game-state %render) value resolved-type)
+                     :value (transform-uniform
+                             (game-state %render) value resolved-type)
                      :binder (generate-uniform-binder material type)))))
 
 (defun resolve-uniform-type (uniform-type)
@@ -157,14 +167,17 @@
      (destructuring-bind (uniform-type . dimensions) uniform-type
        (ecase (resolve-uniform-type uniform-type)
          (:sampler
-          (let* ((unit-list (au:iota dimensions :start (texture-unit-state material)))
-                 (unit-array (make-array dimensions :initial-contents unit-list)))
+          (let* ((unit-list (au:iota dimensions
+                                     :start (texture-unit-state material)))
+                 (unit-array (make-array dimensions
+                                         :initial-contents unit-list)))
             (incf (texture-unit-state material) dimensions)
             (lambda (shader uniform value)
               (loop :for texture :in value
                     :for unit :in unit-list
                     :do (gl:active-texture unit)
-                        (gl:bind-texture (au:href +sampler-targets+ uniform-type) texture))
+                        (gl:bind-texture (au:href +sampler-targets+ uniform-type)
+                                         texture))
               (shadow:uniform-int-array shader uniform unit-array))))
          ((:bool :int) #'shadow:uniform-int-array)
          (:float #'shadow:uniform-float-array))))))

@@ -401,11 +401,12 @@
     entities))
 
 (defun remove-prefab-entities (game-state prefab)
-  (do-entities (game-state entity)
-    (with-slots (%prefab-node) entity
-      (au:do-hash-keys (path (parse-tree prefab))
-        (when (and %prefab-node (string= (path %prefab-node) path))
-          (delete-entity entity))))))
+  (let ((entity-table (entities (active-scene game-state))))
+    (au:do-hash-values (entity (au:href entity-table :active-by-name))
+      (with-slots (%prefab-node) entity
+        (au:do-hash-keys (path (parse-tree prefab))
+          (when (and %prefab-node (string= (path %prefab-node) path))
+            (delete-entity entity)))))))
 
 (defun make-prefab-factory (prefab)
   (lambda (game-state)
