@@ -25,7 +25,8 @@
 (defmacro define-component (name (&key before after) &body slots)
   `(progn
      (assert (not (intersection ',before ',after)) ()
-             "Component ~s must not have an order to be both before and after the same component."
+             "Component ~s must not have an order to be both before and after ~
+              the same component."
              ',name)
      (setf (au:href *component-definitions* ',name)
            (list :before ',before :after ',after))
@@ -46,9 +47,11 @@
 (defun compute-component-type-order (game-state)
   (flet ((dag-p (graph)
            (unless (or (cl-graph:find-edge-if graph #'cl-graph:undirected-edge-p)
-                       (cl-graph:find-vertex-if graph (lambda (x) (cl-graph:in-cycle-p graph x))))
+                       (cl-graph:find-vertex-if
+                        graph (lambda (x) (cl-graph:in-cycle-p graph x))))
              t)))
-    (let ((graph (cl-graph:make-graph 'cl-graph:graph-container :default-edge-type :directed)))
+    (let ((graph (cl-graph:make-graph 'cl-graph:graph-container
+                                      :default-edge-type :directed)))
       (au:do-hash (type definition *component-definitions*)
         (cl-graph:add-vertex graph type)
         (destructuring-bind (&key before after) definition
@@ -57,7 +60,8 @@
           (dolist (c after)
             (cl-graph:add-edge-between-vertexes graph c type))))
       (assert (dag-p graph) ()
-              "The component graph is not a DAG, therefor the type order cannot be computed.")
+              "The component graph is not a DAG, therefor the type order cannot ~
+               be computed.")
       (setf (type-order (component-data game-state))
             (mapcar #'cl-graph:element (cl-graph:topological-sort graph))))))
 
@@ -69,19 +73,22 @@
      (lambda (x)
        (when x
          (au:when-let* ((entity (entity x))
-                        (component (get-entity-component-by-type entity 'transform)))
+                        (component (get-entity-component-by-type
+                                    entity 'transform)))
            (pushnew component (au:href types 'transform)))))
      (root-node scene)))
   (setf (cache-dirty-p (component-data game-state)) nil))
 
 (defun cache-component (component)
-  (let ((types (au:href (components (active-scene (game-state component))) :active-by-type))
+  (let ((types (au:href (components (active-scene (game-state component)))
+                        :active-by-type))
         (type (component-type component)))
     (unless (eq type 'transform)
       (pushnew component (au:href types type)))))
 
 (defun uncache-component (component)
-  (let ((types (au:href (components (active-scene (game-state component))) :active-by-type)))
+  (let ((types (au:href (components (active-scene (game-state component)))
+                        :active-by-type)))
     (au:deletef (au:href types (component-type component)) component)))
 
 (defun mark-component-types-dirty (game-state)
@@ -90,7 +97,10 @@
 (defun make-component (game-state type &rest args)
   (let ((component (make-instance type :game-state game-state :type type)))
     (apply #'reinitialize-instance component args)
-    (setf (au:href (components (active-scene game-state)) :create-pending component) component)
+    (setf (au:href (components (active-scene game-state))
+                   :create-pending
+                   component)
+          component)
     component))
 
 (defun map-components (game-state func)
@@ -110,7 +120,8 @@
 (defun compute-component-initargs (component-type)
   (let* ((class (find-class component-type))
          (class-args (au:mappend #'c2mop:slot-definition-initargs
-                                 (c2mop:class-slots (c2mop:ensure-finalized class))))
+                                 (c2mop:class-slots
+                                  (c2mop:ensure-finalized class))))
          (instance-lambda-list (c2mop:method-lambda-list
                                 (first
                                  (c2mop:compute-applicable-methods-using-classes
