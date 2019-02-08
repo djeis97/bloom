@@ -61,7 +61,7 @@
      (:file "flow")
      (:file "component")
      (:file "entity")
-     (:file "action-manager")
+     (:file "action")
      (:file "scene")
      (:file "engine")
      (:file "display")))
@@ -76,7 +76,6 @@
      (:file "transform")
      (:file "camera")
      (:file "mesh")
-     (:file "actions")
      (:file "sprite")
      (:file "render")))
    (:module "prefab"

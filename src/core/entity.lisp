@@ -10,7 +10,9 @@
    (%prefab-node :reader prefab-node
                  :initarg :prefab-node)
    (%components :reader components
-                :initform (au:dict #'eq))))
+                :initform (au:dict #'eq))
+   (%actions :reader actions
+             :initform (dll:make-dlist :test #'eq))))
 
 (au:define-printer (entity stream :type t :identity t)
   (format stream "~a" (id entity)))
@@ -24,7 +26,8 @@
            :create-pending (au:dict #'eq)
            :created (au:dict #'eq)
            :active-by-name (au:dict #'eq)
-           :active-by-prefab (au:dict #'equalp)))
+           :active-by-prefab (au:dict #'equalp)
+           :actions (au:dict #'eq)))
 
 (defun make-entity (game-state &key prefab-node)
   (let* ((id (au:unique-name (au:format-symbol *package* "~:@(~a~)-" (name prefab-node))))
