@@ -3,6 +3,8 @@
 (defclass transform-state ()
   ((%current :accessor current
              :initarg :current)
+   (%frame :accessor frame
+           :initarg :frame)
    (%incremental :accessor incremental
                  :initarg :incremental)
    (%incremental-delta :accessor incremental-delta
@@ -15,6 +17,7 @@
 (defclass transform-state-vector (transform-state)
   ()
   (:default-initargs :current (m:vec3)
+                     :frame (m:vec3)
                      :incremental (m:vec3)
                      :incremental-delta (m:vec3)
                      :previous (m:vec3)
@@ -73,7 +76,7 @@
         (m:copy-into %previous %current)
         (m:rotate :local %current (m:* %incremental delta %incremental-delta)
                   %current))
-      (with-slots (%previous %current %incremental-delta %incremental)
+      (with-slots (%frame %previous %current %incremental-delta %incremental)
           %translation
         (m:copy-into %previous %current)
         (m:+ %current (m:* %incremental delta %incremental-delta) %current)))))
@@ -142,11 +145,9 @@
 
 ;;; User API
 
-(defun translate-transform (transform vec &key replace-p instant-p)
-  (with-slots (%current %previous) (translation transform)
-    (m:+ (if replace-p m:+zero-vec3+ %current) vec %current)
-    (when instant-p
-      (m:copy-into %previous %current))))
+(defun translate-transform (transform vec)
+  (with-slots (%frame %previous %current) (translation transform)
+    (m:+ m:+zero-vec3+ vec %current)))
 
 (defun rotate-transform (transform vec &key replace-p instant-p)
   (with-slots (%current %previous) (rotation transform)

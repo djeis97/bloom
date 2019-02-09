@@ -12,8 +12,8 @@
   (with-slots (%owner %reverse-p %axis %offset) action
     (let* ((transform (get-entity-component %owner 'transform))
            (step (au:map-domain 0 1 0 %offset (action-step action)))
-           (step (if %reverse-p (- %offset step) step)))
+           (step (if %reverse-p (- step) step)))
       (ecase %axis
-        (:x (translate-transform transform (m:vec3 step 0 0) :replace-p t))
-        (:y (translate-transform transform (m:vec3 0 step 0) :replace-p t))
-        (:z (translate-transform transform (m:vec3 0 0 step) :replace-p t))))))
+        (:x (translate-transform transform (m:vec3 step 0 0)))
+        (:y (translate-transform transform (m:vec3 0 step 0)))
+        (:z (translate-transform transform (m:vec3 0 0 step)))))))

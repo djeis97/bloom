@@ -15,9 +15,11 @@
   (follow-z-axis-p nil))
 
 (defun set-camera-view (camera)
-  (with-slots (%target %follow-z-axis-p) camera
-    (let* ((target (m:get-translation
-                    (model (get-entity-component (target camera) 'transform))))
+  (with-slots (%entity %target %follow-z-axis-p) camera
+    (let* ((target (if %target
+                       (m:get-translation
+                        (model (get-entity-component %target 'transform)))
+                       %entity))
            (camera-model (model (transform camera)))
            (eye (if %target
                     (m:+ (m:get-translation camera-model)
