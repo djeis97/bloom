@@ -26,6 +26,7 @@
 (defclass transform-state-quaternion (transform-state)
   ()
   (:default-initargs :current (m:quat 1)
+                     :frame (m:vec3)
                      :incremental (m:quat 1)
                      :incremental-delta (m:quat 1)
                      :previous (m:quat 1)
@@ -66,20 +67,29 @@
   (setf (children parent) (remove-if (lambda (x) (eq x child)) (children parent))
         (parent child) nil))
 
+(defun transform-node/vector (state delta frame-time)
+  (with-slots (%frame %previous %current %incremental-delta %incremental) state
+    (m:copy-into %previous %current)
+    (m:* %frame frame-time %frame)
+    (m:+ %current %frame %current)
+    (m:* %incremental delta %incremental-delta)
+    (m:+ %current %incremental-delta %current)
+    (m:zero %frame)))
+
+(defun transform-node/quat (state delta frame-time)
+  (with-slots (%frame %previous %current %incremental-delta %incremental) state
+    (m:copy-into %previous %current)
+    (m:* %frame frame-time %frame)
+    (m:rotate :local %current %frame %current)
+    (m:* %incremental delta %incremental-delta)
+    (m:rotate :local %current %incremental-delta %current)
+    (m:zero %frame)))
+
 (defun transform-node (game-state node)
-  (let ((delta (delta (frame-manager game-state))))
-    (with-slots (%scaling %rotation %translation) node
-      (with-slots (%previous %current %incremental-delta %incremental) %scaling
-        (m:copy-into %previous %current)
-        (m:+ %current (m:* %incremental delta %incremental-delta) %current))
-      (with-slots (%previous %current %incremental-delta %incremental) %rotation
-        (m:copy-into %previous %current)
-        (m:rotate :local %current (m:* %incremental delta %incremental-delta)
-                  %current))
-      (with-slots (%frame %previous %current %incremental-delta %incremental)
-          %translation
-        (m:copy-into %previous %current)
-        (m:+ %current (m:* %incremental delta %incremental-delta) %current)))))
+  (with-slots (%delta %frame-time) (frame-manager game-state)
+    (transform-node/vector (scaling node) %delta %frame-time)
+    (transform-node/quat (rotation node) %delta %frame-time)
+    (transform-node/vector (translation node) %delta %frame-time)))
 
 (defun resolve-local (node alpha)
   (with-slots (%local %scaling %rotation %translation) node
@@ -146,20 +156,16 @@
 ;;; User API
 
 (defun translate-transform (transform vec)
-  (with-slots (%frame %previous %current) (translation transform)
-    (m:+ m:+zero-vec3+ vec %current)))
+  (with-slots (%frame) (translation transform)
+    (m:+ %frame vec %frame)))
 
-(defun rotate-transform (transform vec &key replace-p instant-p)
-  (with-slots (%current %previous) (rotation transform)
-    (m:rotate :local (if replace-p m:+id-quat+ %current) vec %current)
-    (when instant-p
-      (m:copy-into %previous %current))))
+(defun rotate-transform (transform vec)
+  (with-slots (%frame) (rotation transform)
+    (m:+ %frame vec %frame)))
 
-(defun scale-transform (transform vec &key replace-p instant-p)
-  (with-slots (%current %previous) (scaling transform)
-    (m:+ (if replace-p m:+zero-vec3+ %current) vec %current)
-    (when instant-p
-      (m:copy-into %previous %current))))
+(defun scale-transform (transform vec)
+  (with-slots (%frame) (scaling transform)
+    (m:+ %frame vec %frame)))
 
 ;;; Component event hooks
 
