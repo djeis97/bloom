@@ -53,7 +53,7 @@
 
 (defun action-step (action)
   (with-slots (%shape %elapsed %duration) action
-    (funcall %shape (au:clamp (/ %elapsed %duration) 0f0 1f0))))
+    (funcall %shape (* 2 (au:clamp (/ %elapsed %duration) 0f0 1f0)))))
 
 (defun make-action (entity &rest args)
   (let ((action-table (actions (active-scene (game-state entity))))
@@ -87,7 +87,9 @@
               %finished-p nil))
       (call-next-method)
       (v:trace :bloom.action "Action ~a finished for actor ~a."
-               %type (id %owner)))))
+               %type (id %owner))
+      (unless %repeat-p
+        (remove-action action)))))
 
 (defgeneric on-action-update (action)
   (:method (action))

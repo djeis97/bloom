@@ -9,9 +9,9 @@
             :initform 1.0)))
 
 (defmethod on-action-update ((action action/translate))
-  (with-slots (%owner %reverse-p %axis %offset) action
+  (with-slots (%owner %reverse-p %axis %duration %offset) action
     (let* ((transform (get-entity-component %owner 'transform))
-           (step (au:map-domain 0 1 0 %offset (action-step action)))
+           (step (au:map-domain 0 %duration 0 (* 2 %offset) (action-step action)))
            (step (if %reverse-p (- step) step)))
       (ecase %axis
         (:x (translate-transform transform (m:vec3 step 0 0)))
