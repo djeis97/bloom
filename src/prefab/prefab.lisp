@@ -140,20 +140,11 @@
         (au:mvlet ((path options (parse-path-spec path path-spec)))
           (make-paths prefab path body options))))))
 
-(defun evaluate-components (components)
-  (let ((specs))
-    (dolist (component components)
-      (destructuring-bind (type options . args) component
-        (loop :for (k v) :on args :by #'cddr
-              :append (list k (eval v)) :into new-args
-              :finally (push `(,type ,options ,@new-args) specs))))
-    specs))
-
 (defun add-components (prefab path data)
   (au:mvlet ((components children (split-components/children data)))
     (let ((node (make-node prefab path)))
       (with-slots (%components) node
-        (au:appendf %components (evaluate-components components))
+        (au:appendf %components components)
         (dolist (child children)
           (destructuring-bind (path-spec . body) child
             (let ((path (parse-path-spec path path-spec)))
@@ -379,8 +370,10 @@
     (dolist (type (type-order (component-data game-state)))
       (au:when-let (table (au:href (components-table (prefab-node entity)) type))
         (au:do-hash-values (data table)
-          (let ((component (apply #'make-component game-state type :id type
-                                  (getf data :args))))
+          (let* ((args (loop :for (k v) :on (getf data :args) :by #'cddr
+                             :append (list k (eval v))))
+                 (component (apply #'make-component game-state type :id type
+                                   args)))
             (attach-component entity component)))))))
 
 (defun make-prefab-entity-relationships (game-state prefab entities)
