@@ -9,8 +9,46 @@
             :initarg :shader)
    (%target :reader target
             :initarg :target)
+   (%uniforms-spec :reader uniforms-spec
+                   :initarg :uniforms-spec
+                   :initform nil)
    (%uniforms :reader uniforms
-              :initarg :uniforms)))
+              :initarg :uniforms)
+   (%dependents :accessor dependents
+                :initform nil)))
+
+(defun update-material-definition (definition shader target uniforms)
+  (let ((instance (reinitialize-instance definition
+                                         :shader shader
+                                         :target target
+                                         :uniforms uniforms)))
+    (dolist (dep (dependents definition))
+      (with-slots (%shader %target %uniforms-spec) dep
+        (let ((uniforms-table (au:merge-tables
+                               uniforms
+                               (make-material-definition-uniform-table
+                                %uniforms-spec))))
+          (update-material-definition dep %shader %target uniforms-table))))
+    instance))
+
+(defun make-material-definition (id base shader target uniforms)
+  (let* ((base-definition (find-material-definition base))
+         (uniforms-table (au:merge-tables
+                          (copy-material-definition-uniforms base-definition)
+                          (make-material-definition-uniform-table uniforms)))
+         (shader (or shader (and base (shader base-definition))))
+         (target (or target (and base (target base-definition)))))
+    (au:if-let ((definition (au:href *material-definitions* id)))
+      (update-material-definition definition shader target uniforms-table)
+      (let ((definition (make-instance 'material-definition
+                                       :id id
+                                       :shader shader
+                                       :target target
+                                       :uniforms-spec uniforms
+                                       :uniforms uniforms-table)))
+        (when base
+          (pushnew definition (dependents base-definition)))
+        definition))))
 
 (defun find-material-definition (id)
   (au:href *material-definitions* id))
@@ -36,24 +74,9 @@
       uniforms)))
 
 (defmacro define-material (id (&optional base) &body body)
-  (au:with-unique-names (base-material base-uniforms uniforms-table)
-    (destructuring-bind (&key shader target uniforms) (car body)
-      `(let* ((,uniforms-table (make-material-definition-uniform-table
-                                ,uniforms))
-              (,base-material (find-material-definition ',base))
-              (,base-uniforms (copy-material-definition-uniforms
-                               ,base-material)))
-         (setf (au:href *material-definitions* ',id)
-               (make-instance 'material-definition
-                              :id ',id
-                              :shader (or ',shader
-                                          (and ,base-material
-                                               (shader ,base-material)))
-                              :target (or ',target
-                                          (and ,base-material
-                                               (target ,base-material)))
-                              :uniforms (au:merge-tables ,base-uniforms
-                                                         ,uniforms-table)))))))
+  (destructuring-bind (&key shader target uniforms) (car body)
+    `(setf (au:href *material-definitions* ',id)
+           (make-material-definition ',id ',base ',shader ',target ,uniforms))))
 
 (defclass material ()
   ((%id :reader id
