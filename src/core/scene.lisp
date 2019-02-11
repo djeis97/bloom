@@ -8,6 +8,8 @@
    (%loaded-p :accessor loaded-p
               :initform nil)
    (%root-node :accessor root-node)
+   (%materials :reader materials
+               :initform (au:dict #'eq))
    (%entities :reader entities
               :initform (make-entity-table))
    (%components :reader components

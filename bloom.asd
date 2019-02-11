@@ -50,6 +50,7 @@
     :components
     ((:file "options")
      (:file "logging")
+     (:file "engine")
      (:file "tasks")
      (:file "resource-cache")
      (:file "host")
@@ -63,7 +64,6 @@
      (:file "entity")
      (:file "action")
      (:file "scene")
-     (:file "engine")
      (:file "display")))
    (:module "shaders"
     :components

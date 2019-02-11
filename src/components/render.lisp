@@ -39,6 +39,12 @@
       (setf %material (make-material material-definition self))
       (error "Material ~s is not defined for component ~s." %material %id))))
 
+(defmethod on-component-destroy ((self render))
+  (with-slots (%game-state %material) self
+    (let ((material-definition (id (definition %material)))
+          (scene-materials (materials (active-scene %game-state))))
+      (remhash %material (au:href scene-materials material-definition)))))
+
 (defmethod on-component-attach ((self render))
   (with-slots (%entity %transform) self
     (setf %transform (get-entity-component %entity 'transform))

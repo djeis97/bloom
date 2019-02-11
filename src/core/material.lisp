@@ -22,14 +22,36 @@
                                          :shader shader
                                          :target target
                                          :uniforms uniforms)))
-    (dolist (dep (dependents definition))
-      (with-slots (%shader %target %uniforms-spec) dep
-        (let ((uniforms-table (au:merge-tables
-                               uniforms
-                               (make-material-definition-uniform-table
-                                %uniforms-spec))))
-          (update-material-definition dep %shader %target uniforms-table))))
+    (with-slots (%id) instance
+      (dolist (dep (dependents definition))
+        (with-slots (%shader %target %uniforms-spec) dep
+          (let ((uniforms-table (au:merge-tables
+                                 uniforms
+                                 (make-material-definition-uniform-table
+                                  %uniforms-spec))))
+            (update-material-definition dep %shader %target uniforms-table))))
+      (when *game-state*
+        (au:when-let* ((table
+                        (au:href (materials (active-scene *game-state*)) %id))
+                       (table-copy (au:copy-hash-table table)))
+          (clrhash table)
+          (au:do-hash-keys (k table-copy)
+            (with-slots (%render) k
+              (let ((material (make-material instance %render)))
+                (resolve-material material %render)
+                (setf (material %render) material)))))))
     instance))
+
+(defun %make-material-definition (id base shader target uniforms uniforms-table)
+  (let ((definition (make-instance 'material-definition
+                                   :id id
+                                   :shader shader
+                                   :target target
+                                   :uniforms-spec uniforms
+                                   :uniforms uniforms-table)))
+    (when base
+      (pushnew definition (dependents base)))
+    definition))
 
 (defun make-material-definition (id base shader target uniforms)
   (let* ((base-definition (find-material-definition base))
@@ -40,15 +62,8 @@
          (target (or target (and base (target base-definition)))))
     (au:if-let ((definition (au:href *material-definitions* id)))
       (update-material-definition definition shader target uniforms-table)
-      (let ((definition (make-instance 'material-definition
-                                       :id id
-                                       :shader shader
-                                       :target target
-                                       :uniforms-spec uniforms
-                                       :uniforms uniforms-table)))
-        (when base
-          (pushnew definition (dependents base-definition)))
-        definition))))
+      (%make-material-definition id base-definition shader target uniforms
+                                 uniforms-table))))
 
 (defun find-material-definition (id)
   (au:href *material-definitions* id))
@@ -111,26 +126,32 @@
 (defun make-material (definition render)
   (destructuring-bind (&key framebuffer attachments clear-buffers)
       (target definition)
-    (let* ((game-state (game-state render))
-           (shader (or (shader render) (shader definition)))
-           (framebuffer (find-framebuffer game-state framebuffer))
-           (attachments (framebuffer-attachment-names->points
-                         framebuffer attachments))
-           (program (shadow:find-program shader))
-           (uniforms (au:plist->hash (uniforms render) :test #'eq))
-           (material (make-instance 'material
-                                    :id (id definition)
-                                    :render render
-                                    :framebuffer framebuffer
-                                    :attachments attachments
-                                    :clear-buffers clear-buffers
-                                    :shader shader
-                                    :uniforms uniforms)))
-      (au:do-hash (k v (uniforms definition))
-        (when (au:href (shadow:uniforms program) k)
-          (symbol-macrolet ((uniform (au:href uniforms k)))
-            (setf uniform (make-material-uniform material k (or uniform v))))))
-      material)))
+    (with-slots (%id %uniforms) definition
+      (let* ((game-state (game-state render))
+             (scene (active-scene game-state))
+             (shader (or (shader render) (shader definition)))
+             (framebuffer (find-framebuffer game-state framebuffer))
+             (attachments (framebuffer-attachment-names->points
+                           framebuffer attachments))
+             (program (shadow:find-program shader))
+             (uniforms (au:plist->hash (uniforms render) :test #'eq))
+             (material (make-instance 'material
+                                      :id %id
+                                      :render render
+                                      :framebuffer framebuffer
+                                      :attachments attachments
+                                      :clear-buffers clear-buffers
+                                      :shader shader
+                                      :uniforms uniforms)))
+        (unless (au:href (materials scene) %id)
+          (setf (au:href (materials scene) %id)
+                (au:dict #'eq)))
+        (setf (au:href (materials scene) %id material) material)
+        (au:do-hash (k v %uniforms)
+          (when (au:href (shadow:uniforms program) k)
+            (symbol-macrolet ((uniform (au:href uniforms k)))
+              (setf uniform (make-material-uniform material k (or uniform v))))))
+        material))))
 
 (defun make-material-uniform (material name value)
   (with-slots (%render %shader) material
