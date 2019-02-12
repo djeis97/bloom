@@ -7,7 +7,7 @@
   (v:stop v:*global-controller*)
   (setf *release-p* t)
   (sb-ext:save-lisp-and-die file-name
-                            :toplevel 'start-engine
+                            :toplevel 'launch
                             :executable t
                             :compression 9))
 

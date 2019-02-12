@@ -28,9 +28,10 @@
       (try value))))
 
 (defgeneric create-window (game-state)
-  (:method :before ((game-state game-state))
-    (let ((opengl-version (option game-state :opengl-version))
-          (anti-alias-level (option game-state :anti-alias-level)))
+  (:method :before (game-state)
+    (let* ((project (project game-state))
+           (opengl-version (option project :opengl-version))
+           (anti-alias-level (option project :anti-alias-level)))
       (au:mvlet ((major-version minor-version (parse-opengl-version-string
                                                opengl-version)))
         (sdl2:gl-set-attrs :context-major-version major-version
@@ -38,20 +39,21 @@
                            :context-profile-mask 1
                            :multisamplebuffers (if (zerop anti-alias-level) 0 1)
                            :multisamplesamples anti-alias-level))))
-  (:method ((game-state game-state))
-    (let ((window (sdl2:create-window :title (option game-state :title)
-                                      :w (option game-state :window-width)
-                                      :h (option game-state :window-height)
-                                      :flags '(:opengl))))
+  (:method (game-state)
+    (let* ((project (project game-state))
+           (window (sdl2:create-window :title (option project :title)
+                                       :w (option project :window-width)
+                                       :h (option project :window-height)
+                                       :flags '(:opengl))))
       (sdl2:gl-create-context window)
       window)))
 
 (defmethod initialize-instance :after ((instance display) &key &allow-other-keys)
-  (let ((game-state (game-state instance)))
-    (setf (display game-state) instance)
+  (with-slots (%display %project) (game-state instance)
+    (setf %display instance)
     (apply #'gl:enable '(:depth-test :blend :multisample :cull-face))
     (gl:blend-func :src-alpha :one-minus-src-alpha)
-    (maybe-set-vsync (option game-state :vsync))))
+    (maybe-set-vsync (option %project :vsync))))
 
 (defun make-display (game-state)
   (let ((window (create-window game-state))
@@ -61,10 +63,9 @@
                             :refresh-rate refresh-rate)))
 
 (defun clear-screen (display)
-  (let* ((game-state (game-state display))
-         (elapsed-time (total-time (frame-manager game-state))))
+  (with-slots (%project %frame-manager) (game-state display)
     (multiple-value-call #'gl:clear-color
-      (if (option game-state :debug)
-          (values (* 0.25 (abs (sin elapsed-time))) 0 0 1)
+      (if (option %project :debug)
+          (values (* 0.25 (abs (sin (total-time %frame-manager)))) 0 0 1)
           (values 0 0 0 1)))
     (gl:clear :color-buffer :depth-buffer)))

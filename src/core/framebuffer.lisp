@@ -32,8 +32,8 @@
                  (declare (ignore game-state))
                  value)
                (lambda (game-state)
-                 (option game-state (au:format-symbol ::keyword "WINDOW-~A"
-                                                      dimension))))))
+                 (option (project game-state)
+                         (au:format-symbol ::keyword "WINDOW-~A" dimension))))))
     (destructuring-bind (name &key point (type :render-buffer) width height) spec
       (make-instance 'framebuffer-attachment-definition
                      :name name

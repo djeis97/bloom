@@ -4,6 +4,10 @@
   (:local-nicknames (#:m #:game-math))
   (:use #:cl)
 
+  ;; engine
+  (:export #:launch
+           #:stop)
+
   ;; actions
   (:export #:action
            #:make-action
@@ -18,6 +22,7 @@
 
   (:export #:cache-lookup
            #:camera
+           #:define-asset-pool
            #:define-component
            #:define-framebuffer
            #:define-material
@@ -54,8 +59,6 @@
            #:scale-transform
            #:shader-modified-post-hook
            #:sprite
-           #:start-engine
-           #:stop-engine
            #:storage
            #:switch-camera-target
            #:switch-scene

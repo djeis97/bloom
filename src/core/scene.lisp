@@ -20,7 +20,7 @@
             :initform nil)))
 
 (defun make-scenes (game-state)
-  (let ((default (option game-state :default-scene)))
+  (let ((default (option (project game-state) :default-scene)))
     (au:do-hash-keys (name *scene-definitions*)
       (let ((scene (make-instance 'scene :name name)))
         (setf (au:href (scenes game-state) name) scene)))

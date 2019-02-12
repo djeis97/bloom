@@ -31,34 +31,36 @@
            (up (m:vec3 (m:get-column camera-model 1))))
       (m:set-view eye target up (view camera)))))
 
-(defmethod set-camera-projection ((mode (eql :orthographic)) camera game-state)
+(defmethod set-camera-projection (game-state (mode (eql :orthographic)) camera)
   (with-slots (%clip-near %clip-far %zoom %projection) camera
-    (let ((w (/ (option game-state :window-width) %zoom 2))
-          (h (/ (option game-state :window-height) %zoom 2)))
+    (let* ((project (project game-state))
+           (w (/ (option project :window-width) %zoom 2))
+           (h (/ (option project :window-height) %zoom 2)))
       (m:set-projection/orthographic
        (- w) w (- h) h %clip-near %clip-far %projection))))
 
-(defmethod set-camera-projection ((mode (eql :perspective)) camera game-state)
+(defmethod set-camera-projection (game-state (mode (eql :perspective)) camera)
   (with-slots (%fov-y %zoom %clip-near %clip-far %projection) camera
-    (let ((aspect-ratio (/ (option game-state :window-width)
-                           (option game-state :window-height))))
+    (let* ((project (project game-state))
+           (aspect-ratio (/ (option project :window-width)
+                            (option project :window-height))))
       (m:set-projection/perspective (/ %fov-y %zoom)
                                     aspect-ratio
                                     %clip-near
                                     %clip-far
                                     %projection))))
 
-(defmethod set-camera-projection ((mode (eql :isometric)) camera game-state)
+(defmethod set-camera-projection (game-state (mode (eql :isometric)) camera)
   (with-slots (%rotation) (transform camera)
     (let ((rotation (m:vec3 (- (asin (/ (sqrt 3)))) 0 (/ pi 4))))
-      (set-camera-projection :orthographic camera game-state)
+      (set-camera-projection game-state :orthographic camera)
       (setf (current %rotation) (m:inverse
                                  (m:rotate :local m:+id-quat+ rotation))))))
 
 (defun zoom-camera (game-state offset)
   (let ((camera (camera (active-scene game-state))))
     (setf (fov-y camera) (au:clamp (- (fov-y camera) offset) 1.0 45.0))
-    (set-camera-projection (mode camera) camera game-state)))
+    (set-camera-projection game-state (mode camera) camera)))
 
 (defun correct-camera-transform (camera)
   (with-slots (%actor %mode %transform) camera
@@ -81,7 +83,7 @@
           %fov-y (* %fov-y (/ pi 180))
           %transform (get-entity-component %entity 'transform))
     (correct-camera-transform self)
-    (set-camera-projection %mode self %game-state)))
+    (set-camera-projection %game-state %mode self)))
 
 (defmethod on-component-update ((self camera))
   (set-camera-view self))

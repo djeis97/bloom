@@ -24,7 +24,7 @@
 
 (defun set-draw-method (render)
   (with-slots (%entity %draw-method %mode) render
-    (let* ((type (au:format-symbol :bloom "~a" %mode))
+    (let* ((type (au:ensure-symbol %mode :bloom))
            (component (get-entity-component %entity type)))
       (setf %draw-method
             (ecase %mode

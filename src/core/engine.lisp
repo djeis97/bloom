@@ -3,7 +3,9 @@
 (defvar *game-state* nil)
 
 (defclass game-state ()
-  ((%running-p :accessor running-p
+  ((%project :reader project
+             :initarg :project)
+   (%running-p :accessor running-p
                :initform t)
    (%options :accessor options)
    (%frame-manager :accessor frame-manager)
@@ -29,12 +31,13 @@
                 :initform nil)))
 
 (defun make-frame-manager (game-state)
-  (setf (frame-manager game-state)
-        (make-instance 'frame-manager
-                       :vsync-p (option game-state :vsync)
-                       :delta (option game-state :physics-delta)
-                       :period (option game-state :periodic-interval)
-                       :debug-interval (option game-state :debug-interval))))
+  (with-slots (%project %frame-manager) game-state
+    (setf %frame-manager
+          (make-instance 'frame-manager
+                         :vsync-p (option %project :vsync)
+                         :delta (option %project :physics-delta)
+                         :period (option %project :periodic-interval)
+                         :debug-interval (option %project :debug-interval)))))
 
 (defun update-step (game-state)
   (when (cache-dirty-p (component-data game-state))
@@ -62,7 +65,7 @@
     (render-step game-state)
     ;; TODO: Remove this later when possible.
     (when (input-enter-p game-state '(:key :escape))
-      (stop-engine game-state))))
+      (stop game-state))))
 
 (defun main-loop (game-state)
   (initialize-frame-time game-state)
@@ -70,10 +73,9 @@
     (step-frame game-state)))
 
 (defun initialize-engine (game-state)
-  (setup-lisp-repl)
-  (load-options game-state)
-  (let ((title (option game-state :title)))
+  (let ((title (option (project game-state) :title)))
     (v:info :bloom.engine.start "Starting ~a..." title)
+    (setup-lisp-repl)
     (enable-logging game-state)
     (compute-component-type-order game-state)
     (make-frame-manager game-state)
@@ -90,8 +92,8 @@
         (profile *game-state* profile-duration)
         (main-loop *game-state*))))
 
-(defun stop-engine (game-state)
-  (let ((title (option game-state :title)))
+(defun stop (game-state)
+  (let ((title (option (project game-state) :title)))
     (v:info :bloom.engine.stop "Shutting down ~a..." title)
     (shutdown-host game-state)
     (setf (running-p game-state) nil)
@@ -108,4 +110,4 @@
                      (<= (total-time frame-manager) duration))
         (step-frame game-state))
       (when (running-p game-state)
-        (stop-engine game-state)))))
+        (stop game-state)))))
