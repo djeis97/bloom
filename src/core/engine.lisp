@@ -86,25 +86,28 @@
     (v:info :bloom.engine.start "~a is now running." title)))
 
 (defun launch (project &key profile-duration)
-  (let ((*game-state* (make-instance 'game-state :project project)))
-         (unwind-protect
-              (progn
-                (initialize-engine *game-state*)
-                (if profile-duration
-                    (profile *game-state* profile-duration)
-                    (main-loop *game-state*)))
-    (force-quit))))
+  (unless *game-state*
+    (unwind-protect
+         (let ((game-state (make-instance 'game-state :project project)))
+           (setf *game-state* game-state)
+           (initialize-engine game-state)
+           (if profile-duration
+               (profile game-state profile-duration)
+               (main-loop game-state)))
+      (force-quit))))
 
 (defun stop (game-state)
   (let ((title (option (project game-state) :title)))
     (v:info :bloom.engine.stop "Shutting down ~a..." title)
     (shutdown-host game-state)
-    (setf (running-p game-state) nil)
+    (setf (running-p game-state) nil
+          *game-state* nil)
     (v:info :bloom.engine.stop "~a successfully exited." title)))
 
 (defun force-quit ()
   (when *game-state*
-    (shutdown-host *game-state*)))
+    (shutdown-host *game-state*)
+    (setf *game-state* nil)))
 
 (defun profile (game-state duration)
   (with-profile
