@@ -4,6 +4,9 @@
   (:local-nicknames (#:m #:game-math))
   (:use #:cl)
 
+  ;; project
+  (:export #:define-project)
+
   ;; engine
   (:export
    #:launch
@@ -21,11 +24,6 @@
    #:action/sprite-animate
    #:action/translate
    #:action/rotate)
-
-  ;; assets
-  (:export
-   #:asset
-   #:define-asset-pool)
 
   ;; prefabs
   (:export
@@ -53,7 +51,6 @@
    #:define-component
    #:define-framebuffer
    #:define-material
-   #:define-options
    #:define-resource-paths
    #:define-scenes
    #:define-texture

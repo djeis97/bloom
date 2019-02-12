@@ -48,7 +48,7 @@
      (:file "handler")))
    (:module "core"
     :components
-    ((:file "options")
+    ((:file "project")
      (:file "logging")
      (:file "engine")
      (:file "tasks")
