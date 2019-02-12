@@ -59,7 +59,7 @@
   (%free-storage (get-loader-type (path image)) image))
 
 (defmacro using-image (binding path &body body)
-  `(let ((,binding (read-image ,path)))
+  `(let ((,binding (read-image (resolve-path :image ,path))))
      (unwind-protect ,@body
        (free-storage ,binding))
      ,binding))
