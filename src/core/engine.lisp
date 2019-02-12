@@ -85,12 +85,15 @@
     (make-scenes game-state)
     (v:info :bloom.engine.start "~a is now running." title)))
 
-(defun start-engine (&key profile-duration)
-  (let ((*game-state* (make-instance 'game-state)))
-    (initialize-engine *game-state*)
-    (if profile-duration
-        (profile *game-state* profile-duration)
-        (main-loop *game-state*))))
+(defun launch (project &key profile-duration)
+  (let ((*game-state* (make-instance 'game-state :project project)))
+         (unwind-protect
+              (progn
+                (initialize-engine *game-state*)
+                (if profile-duration
+                    (profile *game-state* profile-duration)
+                    (main-loop *game-state*)))
+    (force-quit))))
 
 (defun stop (game-state)
   (let ((title (option (project game-state) :title)))
