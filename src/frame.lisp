@@ -1,13 +1,5 @@
 (in-package :bloom)
 
-(defun get-time ()
-  #+sbcl
-  (multiple-value-bind (s ms) (sb-ext:get-time-of-day)
-    (+ (- s (load-time-value (sb-ext:get-time-of-day)))
-       (float (/ ms 1e6) 1d0)))
-  #-sbcl
-  (float (/ (get-internal-real-time) internal-time-units-per-second) 1d0))
-
 (defclass frame-manager ()
   ((%start :reader start
            :initform (get-time))
@@ -42,6 +34,14 @@
 
 (defmethod initialize-instance :after ((object frame-manager) &key)
   (reinitialize-instance object :delta (float (delta object) 1f0)))
+
+(defun get-time ()
+  #+sbcl
+  (multiple-value-bind (s ms) (sb-ext:get-time-of-day)
+    (+ (- s (load-time-value (sb-ext:get-time-of-day)))
+       (float (/ ms 1e6) 1d0)))
+  #-sbcl
+  (float (/ (get-internal-real-time) internal-time-units-per-second) 1d0))
 
 (defun smooth-delta-time (frame-manager refresh-rate)
   (with-slots (%delta-buffer %frame-time) frame-manager

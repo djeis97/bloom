@@ -16,6 +16,7 @@
   (:export
    #:action
    #:make-action
+   #:find-action
    #:on-action-insert
    #:on-action-update
    #:on-action-finish
@@ -23,7 +24,8 @@
    #:action/fade
    #:action/sprite-animate
    #:action/translate
-   #:action/rotate)
+   #:action/rotate
+   #:action/move-tile)
 
   ;; prefabs
   (:export

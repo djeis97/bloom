@@ -16,6 +16,9 @@
    (%duration :reader duration
               :initarg :duration
               :initform 1)
+   (%self-finishing-p :reader self-finishing-p
+                      :initarg :self-finishing-p
+                      :initform nil)
    (%finished-p :accessor finished-p
                 :initarg :finished-p
                 :initform nil)
@@ -37,6 +40,9 @@
            :create-pending (au:dict #'eq)
            :created (au:dict #'eq)
            :active-by-type (au:dict #'eq)))
+
+(defun find-action (entity type)
+  (dll:find-dlist-node (actions entity) type))
 
 (defun insert-action (action where &key target)
   (with-slots (%owner %type) action
@@ -66,9 +72,10 @@
 
 (defun process-actions (actions)
   (loop :for (nil . action) :in (dll:dlist-elements actions)
-        :do (on-action-update action)
         :when (finished-p action)
           :do (on-action-finish action)
+        :unless (finished-p action)
+          :do (on-action-update action)
         :when (blocking-p action)
           :do (return)))
 
