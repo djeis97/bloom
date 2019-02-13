@@ -13,7 +13,6 @@
   :depends-on (#:closer-mop
                #:defpackage-plus
                #:queues.simple-cqueue
-               #:local-time
                #:sdl2
                #:sdl2-image
                #:jsown
@@ -29,15 +28,10 @@
   :serial t
   :components
   ((:file "package")
-   (:module "utility"
-    :components
-    ((:file "common")
-     (:file "live-coding")))
    (:module "asset"
     :components
     ((:file "image")
-     (:file "mesh")
-     (:file "resource")))
+     (:file "mesh")))
    (:module "input"
     :components
     ((:file "states")
@@ -48,8 +42,11 @@
      (:file "handler")))
    (:module "core"
     :components
-    ((:file "project")
+    ((:file "common")
+     (:file "resource")
+     (:file "project")
      (:file "logging")
+     (:file "live-coding")
      (:file "engine")
      (:file "tasks")
      (:file "resource-cache")

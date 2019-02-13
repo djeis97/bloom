@@ -1,9 +1,19 @@
 (in-package :bloom)
 
+(defun get-time ()
+  #+sbcl
+  (multiple-value-bind (s ms) (sb-ext:get-time-of-day)
+    (+ (- s (load-time-value (sb-ext:get-time-of-day)))
+       (float (/ ms 1e6) 1d0)))
+  #-sbcl
+  (float (/ (get-internal-real-time) internal-time-units-per-second) 1d0))
+
 (defclass frame-manager ()
   ((%start :reader start
-           :initform (local-time:now))
-   (%now :initform (local-time:now))
+           :initform (get-time))
+   (%now :initform (get-time))
+   (%pause-time :reader pause-time
+                :initform 0)
    (%before :initform 0)
    (%total-time :reader total-time
                 :initform 0)
@@ -20,7 +30,7 @@
            :initform 0f0)
    (%vsync-p :reader vsync-p
              :initarg :vsync-p)
-   (%period-elapsed :initform (local-time:now))
+   (%period-elapsed :initform (get-time))
    (%period-interval :reader period-interval
                      :initarg :period
                      :initform nil)
@@ -59,7 +69,7 @@
 
 (defun initialize-frame-time (game-state)
   (with-slots (%start %now) (frame-manager game-state)
-    (let ((time (local-time:now)))
+    (let ((time (get-time)))
       (setf %start time
             %now %start))))
 
@@ -72,29 +82,27 @@
     (setf %alpha (/ %accumulator %delta))))
 
 (defun frame-periodic-update (game-state)
-  (with-slots (%period-elapsed %period-interval) (frame-manager game-state)
-    (let ((now (local-time:now))
-          (interval %period-interval))
+  (with-slots (%now %period-elapsed %period-interval) (frame-manager game-state)
+    (let ((interval %period-interval))
       (when (and interval
-                 (>= (local-time:timestamp-difference now %period-elapsed)
-                     interval))
+                 (>= (- %now %period-elapsed) interval))
         (periodic-update-step game-state)
         (v:trace :bloom.engine.frame.periodic-update
                  "Periodic update performed (every ~d seconds)"
                  interval)
-        (setf %period-elapsed now)))))
+        (setf %period-elapsed %now)))))
 
 (defun tick (game-state)
   (let ((frame-manager (frame-manager game-state))
         (refresh-rate (refresh-rate (display game-state))))
-    (with-slots (%start %now %before %total-time %frame-time %vsync-p)
+    (with-slots (%start %now %before %total-time %frame-time %pause-time
+                 %vsync-p)
         frame-manager
-      (setf %before %now
-            %now (local-time:now)
-            %frame-time (float (local-time:timestamp-difference %now %before)
-                               1f0)
-            %total-time (float (local-time:timestamp-difference %now %start)
-                               1f0))
+      (setf %before (+ %now %pause-time)
+            %now (- (get-time) %pause-time)
+            %frame-time (float (- %now %before) 1d0)
+            %total-time (float (- %now %start) 1d0)
+            %pause-time 0)
       (when %vsync-p
         (smooth-delta-time frame-manager refresh-rate))
       (frame-update game-state)

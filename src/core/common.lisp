@@ -1,5 +1,6 @@
 (in-package :bloom)
 
+(defvar *game-state* nil)
 (defvar *release-p* nil)
 
 #+sbcl

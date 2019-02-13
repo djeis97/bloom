@@ -1,7 +1,5 @@
 (in-package :bloom)
 
-(defvar *game-state* nil)
-
 (defclass game-state ()
   ((%project :reader project
              :initarg :project)
@@ -42,6 +40,8 @@
 (defun update-step (game-state)
   (when (cache-dirty-p (component-data game-state))
     (cache-transform-components game-state))
+  (flow/update game-state)
+  (handle-events (input-data game-state))
   (map-components game-state #'on-component-update))
 
 (defun periodic-update-step (game-state)
@@ -58,8 +58,6 @@
 
 (defun step-frame (game-state)
   (with-continue-restart "Bloom"
-    (flow/update game-state)
-    (handle-events (input-data game-state))
     (tick game-state)
     (interpolate-transforms game-state)
     (render-step game-state)
