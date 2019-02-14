@@ -63,7 +63,7 @@
 (defun step/start (core)
   (let ((title (option (project core) :title)))
     (v:info :bloom.core "Starting ~a..." title)
-    (setup-lisp-repl)
+    (setup-live-coding)
     (enable-logging core)
     (compute-component-type-order core)
     (make-frame-manager core)
@@ -75,7 +75,7 @@
     (v:info :bloom.core "~a is now running." title)))
 
 (defun step/periodic (core)
-  (update-lisp-repl)
+  (live-coding-update)
   (process-tasks core))
 
 (defun step/physics (core)
