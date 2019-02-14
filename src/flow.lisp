@@ -2,7 +2,6 @@
 
 (defun flow/update (core)
   (flow/switch-scene core)
-  (flow/actions core)
   (flow/create core)
   (flow/delete core))
 

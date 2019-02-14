@@ -103,6 +103,6 @@
   (:method :before (action)
     (with-slots (%owner %elapsed %duration %finished-p) action
       (with-slots (%core) %owner
-        (incf %elapsed (frame-time (frame-manager %core)))
+        (incf %elapsed (delta (frame-manager %core)))
         (when (>= %elapsed %duration)
           (setf %finished-p t))))))

@@ -70,4 +70,5 @@
    (:file "action-translate")
    (:file "action-rotate")
    (:file "action-fade")
-   (:file "action-sprite-animate")))
+   (:file "action-sprite-animate")
+   (:file "action-move-tile")))

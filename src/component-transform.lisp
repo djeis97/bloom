@@ -167,6 +167,15 @@
   (with-slots (%frame) (scaling transform)
     (m:+ %frame vec %frame)))
 
+(defun get-translation (transform)
+  (current (translation transform)))
+
+(defun get-rotation (transform)
+  (current (rotation transform)))
+
+(defun get-scale (transform)
+  (current (rotation transform)))
+
 ;;; Component event hooks
 
 (defmethod on-component-update ((self transform))

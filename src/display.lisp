@@ -57,7 +57,8 @@
 
 (defun make-display (core)
   (let ((window (create-window core))
-        (refresh-rate (nth-value 3 (sdl2:get-current-display-mode 0))))
+        (refresh-rate (float (nth-value 3 (sdl2:get-current-display-mode 0))
+                             1f0)))
     (make-instance 'display :core core
                             :window window
                             :refresh-rate refresh-rate)))

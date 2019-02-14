@@ -13,6 +13,15 @@
   (:export
    #:define-project)
 
+  ;; transforms
+  (:export
+   #:translate-transform
+   #:rotate-transform
+   #:scale-transform
+   #:get-translation
+   #:get-rotation
+   #:get-scale0)
+
   ;; actions
   (:export
    #:action
@@ -69,8 +78,6 @@
    #:material
    #:mesh
    #:render
-   #:rotate-transform
-   #:scale-transform
    #:shader-modified-post-hook
    #:sprite
    #:storage
@@ -78,7 +85,6 @@
    #:switch-scene
    #:tag
    #:transform
-   #:translate-transform
    #:uniforms
    #:value
    #:write-shader-buffer))

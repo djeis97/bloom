@@ -17,4 +17,3 @@
         (:x (translate-transform transform (m:vec3 step 0 0)))
         (:y (translate-transform transform (m:vec3 0 step 0)))
         (:z (translate-transform transform (m:vec3 0 0 step)))))))
-

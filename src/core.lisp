@@ -80,6 +80,7 @@
 
 (defun step/physics (core)
   (map-component-type core 'transform #'on-component-update)
+  (flow/actions core)
   (map-components core #'on-component-physics-update))
 
 (defun step/frame (core)
