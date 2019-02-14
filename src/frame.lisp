@@ -73,15 +73,16 @@
       (setf %start time
             %now %start))))
 
-(defun frame-update (game-state)
+(defun perform-physics-update (game-state)
   (with-slots (%alpha %delta %accumulator %frame-time) (frame-manager game-state)
     (incf %accumulator %frame-time)
     (au:while (>= %accumulator %delta)
-      (update-step game-state)
+      (map-component-type game-state 'transform #'on-component-update)
+      (map-components game-state #'on-component-physics-update)
       (decf %accumulator %delta))
     (setf %alpha (/ %accumulator %delta))))
 
-(defun frame-periodic-update (game-state)
+(defun perform-periodic-update (game-state)
   (with-slots (%now %period-elapsed %period-interval) (frame-manager game-state)
     (let ((interval %period-interval))
       (when (and interval
@@ -105,7 +106,7 @@
             %pause-time 0)
       (when %vsync-p
         (smooth-delta-time frame-manager refresh-rate))
-      (frame-update game-state)
-      (frame-periodic-update game-state)
+      (perform-physics-update game-state)
+      (perform-periodic-update game-state)
       (calculate-frame-rate frame-manager)
       (values))))

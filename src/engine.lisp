@@ -5,7 +5,6 @@
              :initarg :project)
    (%running-p :accessor running-p
                :initform t)
-   (%options :accessor options)
    (%frame-manager :accessor frame-manager)
    (%display :accessor display)
    (%input-data :accessor input-data
@@ -37,33 +36,27 @@
                          :period (option %project :periodic-interval)
                          :debug-interval (option %project :debug-interval)))))
 
-(defun update-step (game-state)
-  (when (cache-dirty-p (component-data game-state))
-    (cache-transform-components game-state))
-  (flow/update game-state)
-  (handle-events (input-data game-state))
-  (map-components game-state #'on-component-update))
-
 (defun periodic-update-step (game-state)
   (update-lisp-repl)
   (process-tasks game-state))
 
-(defun render-step (game-state)
-  (with-slots (%running-p %display %frame-manager) game-state
-    (when %running-p
-      (clear-screen %display)
-      (map-components game-state #'on-component-render)
-      (sdl2:gl-swap-window (window %display))
-      (incf (frame-count %frame-manager)))))
-
 (defun step-frame (game-state)
   (with-continue-restart "Bloom"
-    (tick game-state)
-    (interpolate-transforms game-state)
-    (render-step game-state)
-    ;; TODO: Remove this later when possible.
-    (when (input-enter-p game-state '(:key :escape))
-      (stop game-state))))
+    (with-slots (%running-p %display %frame-manager) game-state
+      (when %running-p
+        (handle-events (input-data game-state))
+        (tick game-state)
+        (interpolate-transforms game-state)
+        (cache-transform-components game-state)
+        (flow/update game-state)
+        (map-components game-state #'on-component-update)
+        (clear-screen %display)
+        (map-components game-state #'on-component-render)
+        (sdl2:gl-swap-window (window %display))
+        (incf (frame-count %frame-manager)))
+      ;; TODO: Remove this later when possible.
+      (when (input-enter-p game-state '(:key :escape))
+        (stop game-state)))))
 
 (defun main-loop (game-state)
   (initialize-frame-time game-state)
@@ -109,9 +102,9 @@
 
 (defun profile (game-state duration)
   (with-profile
-    (let ((frame-manager (frame-manager game-state)))
-      (au:while (and (running-p game-state)
-                     (<= (total-time frame-manager) duration))
+    (with-slots (%running-p %frame-manager) game-state
+      (au:while (and %running-p
+                     (<= (total-time %frame-manager) duration))
         (step-frame game-state))
-      (when (running-p game-state)
+      (when %running-p
         (stop game-state)))))

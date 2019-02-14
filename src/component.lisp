@@ -16,8 +16,6 @@
            :initform :create-pending)
    (%type :reader component-type
           :initarg :type)
-   (%updated-p :reader updated-p
-               :initform nil)
    (%entity :accessor entity
             :initarg :entity
             :initform nil)))
@@ -66,17 +64,18 @@
             (mapcar #'cl-graph:element (cl-graph:topological-sort graph))))))
 
 (defun cache-transform-components (game-state)
-  (let* ((scene (active-scene game-state))
-         (types (au:href (components scene) :active-by-type)))
-    (remhash 'transform types)
-    (map-nodes
-     (lambda (x)
-       (when x
-         (au:when-let* ((entity (entity x))
-                        (component (get-entity-component entity 'transform)))
-           (pushnew component (au:href types 'transform)))))
-     (root-node scene)))
-  (setf (cache-dirty-p (component-data game-state)) nil))
+  (when (cache-dirty-p (component-data game-state))
+    (let* ((scene (active-scene game-state))
+           (types (au:href (components scene) :active-by-type)))
+      (remhash 'transform types)
+      (map-nodes
+       (lambda (x)
+         (when x
+           (au:when-let* ((entity (entity x))
+                          (component (get-entity-component entity 'transform)))
+             (pushnew component (au:href types 'transform)))))
+       (root-node scene)))
+    (setf (cache-dirty-p (component-data game-state)) nil)))
 
 (defun cache-component (component)
   (let ((types (au:href (components (active-scene (game-state component)))
@@ -102,11 +101,17 @@
           component)
     component))
 
+(defun map-component-type (game-state type func)
+  (let ((components (components (active-scene game-state))))
+    (dolist (component (au:href components :active-by-type type))
+      (funcall func component))))
+
 (defun map-components (game-state func)
   (let ((components (components (active-scene game-state))))
     (dolist (component-type (type-order (component-data game-state)))
-      (dolist (component (au:href components :active-by-type component-type))
-        (funcall func component)))))
+      (unless (eq component-type 'transform)
+        (dolist (component (au:href components :active-by-type component-type))
+          (funcall func component))))))
 
 (defun get-computed-component-precedence-list (component-type)
   (au:when-let ((class (find-class component-type nil)))
@@ -172,12 +177,10 @@
                entity))))
 
 (defgeneric on-component-update (self)
-  (:method (self))
-  (:method :after (self)
-    (setf (slot-value self '%updated-p) t)))
+  (:method (self)))
+
+(defgeneric on-component-physics-update (self)
+  (:method (self)))
 
 (defgeneric on-component-render (self)
-  (:method (self))
-  (:method :around (self)
-    (when (updated-p self)
-      (call-next-method))))
+  (:method (self)))
