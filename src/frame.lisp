@@ -19,7 +19,7 @@
                  :initform 0)
    (%accumulator :initform 0)
    (%alpha :reader alpha
-           :initform 0f0)
+           :initform 0)
    (%vsync-p :reader vsync-p
              :initarg :vsync-p)
    (%period-elapsed :initform (get-time))
@@ -48,9 +48,9 @@
   #+sbcl
   (multiple-value-bind (s ms) (sb-ext:get-time-of-day)
     (+ (- s (load-time-value (sb-ext:get-time-of-day)))
-       (float (/ ms 1e6) 1d0)))
+       (float (/ ms 1e6) 1f0)))
   #-sbcl
-  (float (/ (get-internal-real-time) internal-time-units-per-second) 1d0))
+  (float (/ (get-internal-real-time) internal-time-units-per-second) 1f0))
 
 (defun smooth-delta-time (frame-manager refresh-rate)
   (with-slots (%delta-buffer %frame-time) frame-manager
@@ -109,10 +109,10 @@
         frame-manager
       (setf %before (+ %now %pause-time)
             %now (- (get-time) %pause-time)
-            %frame-time (float (- %now %before) 1d0)
-            %total-time (float (- %now %start) 1d0)
+            %frame-time (- %now %before)
+            %total-time (- %now %start)
             %pause-time 0)
-      (when %vsync-p
+      (when (eq %vsync-p :on)
         (smooth-delta-time frame-manager refresh-rate))
       (perform-physics-update core)
       (perform-periodic-update core)
