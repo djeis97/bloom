@@ -29,11 +29,11 @@
   :components
   ((:file "package")
    (:file "common")
+   (:file "live-coding")
+   (:file "core")
    (:file "resource")
    (:file "project")
    (:file "logging")
-   (:file "live-coding")
-   (:file "engine")
    (:file "tasks")
    (:file "resource-cache")
    (:file "host")

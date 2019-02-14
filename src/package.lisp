@@ -4,13 +4,14 @@
   (:local-nicknames (#:m #:game-math))
   (:use #:cl)
 
-  ;; project
-  (:export #:define-project)
-
-  ;; engine
+  ;; core
   (:export
    #:launch
    #:stop)
+
+  ;; project
+  (:export
+   #:define-project)
 
   ;; actions
   (:export
@@ -38,6 +39,7 @@
    #:on-component-create
    #:on-component-destroy
    #:on-component-detach
+   #:on-component-physics-update
    #:on-component-update
    #:on-component-render)
 
@@ -58,7 +60,7 @@
    #:define-texture
    #:define-texture-profile
    #:entity
-   #:game-state
+   #:core
    #:get-entity-component
    #:make-shader-blocks
    #:make-shader-buffer

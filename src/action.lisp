@@ -62,7 +62,7 @@
     (funcall %shape (* 2 (au:clamp (/ %elapsed %duration) 0f0 1f0)))))
 
 (defun make-action (entity &rest args)
-  (let ((action-table (actions (active-scene (game-state entity))))
+  (let ((action-table (actions (active-scene (core entity))))
         (action (apply #'make-instance 'action
                        :owner entity
                        :allow-other-keys t
@@ -102,7 +102,7 @@
   (:method (action))
   (:method :before (action)
     (with-slots (%owner %elapsed %duration %finished-p) action
-      (with-slots (%game-state) %owner
-        (incf %elapsed (frame-time (frame-manager %game-state)))
+      (with-slots (%core) %owner
+        (incf %elapsed (frame-time (frame-manager %core)))
         (when (>= %elapsed %duration)
           (setf %finished-p t))))))

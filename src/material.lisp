@@ -30,9 +30,9 @@
                                  (make-material-definition-uniform-table
                                   %uniforms-spec))))
             (update-material-definition dep %shader %target uniforms-table))))
-      (when *game-state*
+      (when *core*
         (au:when-let* ((table
-                        (au:href (materials (active-scene *game-state*)) %id))
+                        (au:href (materials (active-scene *core*)) %id))
                        (table-copy (au:copy-hash-table table)))
           (clrhash table)
           (au:do-hash-keys (k table-copy)
@@ -127,10 +127,10 @@
   (destructuring-bind (&key framebuffer attachments clear-buffers)
       (target definition)
     (with-slots (%id %uniforms) definition
-      (let* ((game-state (game-state render))
-             (scene (active-scene game-state))
+      (let* ((core (core render))
+             (scene (active-scene core))
              (shader (or (shader render) (shader definition)))
-             (framebuffer (find-framebuffer game-state framebuffer))
+             (framebuffer (find-framebuffer core framebuffer))
              (attachments (framebuffer-attachment-names->points
                            framebuffer attachments))
              (program (shadow:find-program shader))
@@ -162,7 +162,7 @@
                      :name name
                      :type type
                      :value (transform-uniform
-                             (game-state %render) value resolved-type)
+                             (core %render) value resolved-type)
                      :binder (generate-uniform-binder material type)))))
 
 (defun resolve-uniform-type (uniform-type)
@@ -226,14 +226,14 @@
          ((:bool :int) #'shadow:uniform-int-array)
          (:float #'shadow:uniform-float-array))))))
 
-(defgeneric transform-uniform (game-state uniform-value type)
-  (:method (game-state uniform-value type)
+(defgeneric transform-uniform (core uniform-value type)
+  (:method (core uniform-value type)
     uniform-value)
-  (:method (game-state (uniform-value symbol) (type (eql :sampler)))
-    (load-texture game-state uniform-value))
-  (:method (game-state (uniform-value list) (type (eql :sampler)))
+  (:method (core (uniform-value symbol) (type (eql :sampler)))
+    (load-texture core uniform-value))
+  (:method (core (uniform-value list) (type (eql :sampler)))
     (destructuring-bind (&key framebuffer attachment) uniform-value
-      (find-framebuffer-texture-id game-state framebuffer attachment))))
+      (find-framebuffer-texture-id core framebuffer attachment))))
 
 (defmacro with-material ((material) &body body)
   `(shadow:with-shader-program (shader ,material)

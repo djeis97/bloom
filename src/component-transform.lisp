@@ -85,8 +85,8 @@
     (m:rotate :local %current %incremental-delta %current)
     (m:zero %frame)))
 
-(defun transform-node (game-state node)
-  (with-slots (%delta %frame-time) (frame-manager game-state)
+(defun transform-node (core node)
+  (with-slots (%delta %frame-time) (frame-manager core)
     (transform-node/vector (scaling node) %delta %frame-time)
     (transform-node/quat (rotation node) %delta %frame-time)
     (transform-node/vector (translation node) %delta %frame-time)))
@@ -111,8 +111,8 @@
   (dolist (child (children parent))
     (map-nodes func child)))
 
-(defun interpolate-transforms (game-state)
-  (with-slots (%active-scene %frame-manager) game-state
+(defun interpolate-transforms (core)
+  (with-slots (%active-scene %frame-manager) core
     (map-nodes
      (lambda (node)
        (resolve-model node (alpha %frame-manager)))
@@ -170,4 +170,4 @@
 ;;; Component event hooks
 
 (defmethod on-component-update ((self transform))
-  (transform-node (game-state self) self))
+  (transform-node (core self) self))

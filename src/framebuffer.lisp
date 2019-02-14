@@ -28,11 +28,11 @@
 (defun make-framebuffer-attachment-definition (spec)
   (flet ((generate-size-func (dimension value)
            (if value
-               (lambda (game-state)
-                 (declare (ignore game-state))
+               (lambda (core)
+                 (declare (ignore core))
                  value)
-               (lambda (game-state)
-                 (option (project game-state)
+               (lambda (core)
+                 (option (project core)
                          (au:format-symbol ::keyword "WINDOW-~A" dimension))))))
     (destructuring-bind (name &key point (type :render-buffer) width height) spec
       (make-instance 'framebuffer-attachment-definition
@@ -71,7 +71,7 @@
    (%attachments :reader attachments
                  :initform (au:dict #'eq))))
 
-(defun make-framebuffer (game-state definition)
+(defun make-framebuffer (core definition)
   (with-slots (%name %mode) definition
     (let* ((id (gl:gen-framebuffer))
            (framebuffer (make-instance 'framebuffer
@@ -79,14 +79,14 @@
                                        :id id
                                        :name %name
                                        :mode %mode)))
-      (setf (au:href (framebuffers game-state) %name) framebuffer)
+      (setf (au:href (framebuffers core) %name) framebuffer)
       framebuffer)))
 
 (defun delete-framebuffer (framebuffer)
   (gl:delete-framebuffers (list (id framebuffer))))
 
-(defun find-framebuffer (game-state name)
-  (au:href (framebuffers game-state) name))
+(defun find-framebuffer (core name)
+  (au:href (framebuffers core) name))
 
 (defun framebuffer-mode->target (mode)
   (ecase mode
@@ -125,30 +125,30 @@
       (error "Error attaching ~a as attachment ~a of framebuffer ~a: ~a"
              buffer attachment (name framebuffer) result))))
 
-(defun framebuffer-attach (game-state framebuffer attachment-name)
+(defun framebuffer-attach (core framebuffer attachment-name)
   (let* ((definition (definition framebuffer))
          (attachment (find-framebuffer-attachment-definition
                       definition attachment-name)))
     (ecase (attachment-type attachment)
       (:render-buffer (framebuffer-attach/render-buffer
-                       game-state framebuffer attachment))
+                       core framebuffer attachment))
       (:texture (framebuffer-attach/texture
-                 game-state framebuffer attachment)))))
+                 core framebuffer attachment)))))
 
-(defun find-framebuffer-texture-id (game-state framebuffer-name attachment-name)
-  (let* ((framebuffer (find-framebuffer game-state framebuffer-name))
+(defun find-framebuffer-texture-id (core framebuffer-name attachment-name)
+  (let* ((framebuffer (find-framebuffer core framebuffer-name))
          (definition (definition framebuffer))
          (attachment (find-framebuffer-attachment-definition
                       definition attachment-name))
          (point (framebuffer-attachment-point->gl (point attachment))))
     (au:href (attachments framebuffer) point)))
 
-(defun initialize-framebuffers (game-state)
+(defun initialize-framebuffers (core)
   (au:do-hash-values (definition *framebuffer-definitions*)
     (with-slots (%attachments) definition
-      (let ((framebuffer (make-framebuffer game-state definition)))
+      (let ((framebuffer (make-framebuffer core definition)))
         (au:do-hash-values (attachment %attachments)
-          (framebuffer-attach game-state framebuffer (name attachment)))))))
+          (framebuffer-attach core framebuffer (name attachment)))))))
 
 (defmacro with-framebuffer ((framebuffer) &body body)
   (au:with-unique-names (target)
@@ -159,15 +159,15 @@
 
 ;;; Render buffer attachments
 
-(defun framebuffer-attach/render-buffer (game-state framebuffer attachment)
+(defun framebuffer-attach/render-buffer (core framebuffer attachment)
   (with-slots (%point %width %height) attachment
     (let* ((framebuffer-target (framebuffer-mode->target (mode framebuffer)))
            (target :renderbuffer)
            (internal-format (framebuffer-point->render-buffer-format %point))
            (point (framebuffer-attachment-point->gl %point))
            (buffer-id (gl:gen-renderbuffer))
-           (width (funcall %width game-state))
-           (height (funcall %height game-state)))
+           (width (funcall %width core))
+           (height (funcall %height core)))
       (gl:bind-renderbuffer target buffer-id)
       (gl:renderbuffer-storage target internal-format width height)
       (gl:bind-renderbuffer target 0)
@@ -180,12 +180,12 @@
 
 ;;; Texture attachments
 
-(defun framebuffer-attach/texture (game-state framebuffer attachment)
+(defun framebuffer-attach/texture (core framebuffer attachment)
   (with-slots (%point %width %height) attachment
     (let* ((target (framebuffer-mode->target (mode framebuffer)))
-           (width (funcall %width game-state))
-           (height (funcall %height game-state))
-           (buffer-id (load-texture game-state
+           (width (funcall %width core))
+           (height (funcall %height core))
+           (buffer-id (load-texture core
                                     (au:format-symbol :bloom "FRAMEBUFFER-~a"
                                                       (car %point))
                                     :width width

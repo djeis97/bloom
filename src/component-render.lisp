@@ -14,13 +14,13 @@
   (model (transform render)))
 
 (defun get-render-view (render)
-  (view (camera (active-scene (game-state render)))))
+  (view (camera (active-scene (core render)))))
 
 (defun get-render-projection (render)
-  (projection (camera (active-scene (game-state render)))))
+  (projection (camera (active-scene (core render)))))
 
 (defun get-render-time (render)
-  (total-time (frame-manager (game-state render))))
+  (total-time (frame-manager (core render))))
 
 (defun set-draw-method (render)
   (with-slots (%entity %draw-method %mode) render
@@ -40,9 +40,9 @@
       (error "Material ~s is not defined for component ~s." %material %id))))
 
 (defmethod on-component-destroy ((self render))
-  (with-slots (%game-state %material) self
+  (with-slots (%core %material) self
     (let ((material-definition (id (definition %material)))
-          (scene-materials (materials (active-scene %game-state))))
+          (scene-materials (materials (active-scene %core))))
       (remhash %material (au:href scene-materials material-definition)))))
 
 (defmethod on-component-attach ((self render))

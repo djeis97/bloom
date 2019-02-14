@@ -222,11 +222,11 @@
     (gl:bind-texture target 0)
     id))
 
-(defun load-texture (game-state name &rest args)
+(defun load-texture (core name &rest args)
   (let* ((definition (au:href *texture-definitions* name))
          (data (get-texture-attribute definition :data)))
     (if data
-        (cache-lookup game-state :texture data
+        (cache-lookup core :texture data
           (apply #'%load-texture definition args))
         (apply #'%load-texture definition args))))
 

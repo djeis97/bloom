@@ -8,8 +8,8 @@
                    :initform t)))
 
 (defclass component ()
-  ((%game-state :reader game-state
-                :initarg :game-state)
+  ((%core :reader core
+          :initarg :core)
    (%id :accessor component-id
         :initarg :id)
    (%state :accessor state
@@ -42,7 +42,7 @@
            :created (au:dict #'eq)
            :active-by-type (au:dict #'eq)))
 
-(defun compute-component-type-order (game-state)
+(defun compute-component-type-order (core)
   (flet ((dag-p (graph)
            (unless (or (cl-graph:find-edge-if graph #'cl-graph:undirected-edge-p)
                        (cl-graph:find-vertex-if
@@ -60,12 +60,12 @@
       (assert (dag-p graph) ()
               "The component graph is not a DAG, therefor the type order cannot ~
                be computed.")
-      (setf (type-order (component-data game-state))
+      (setf (type-order (component-data core))
             (mapcar #'cl-graph:element (cl-graph:topological-sort graph))))))
 
-(defun cache-transform-components (game-state)
-  (when (cache-dirty-p (component-data game-state))
-    (let* ((scene (active-scene game-state))
+(defun cache-transform-components (core)
+  (when (cache-dirty-p (component-data core))
+    (let* ((scene (active-scene core))
            (types (au:href (components scene) :active-by-type)))
       (remhash 'transform types)
       (map-nodes
@@ -75,40 +75,40 @@
                           (component (get-entity-component entity 'transform)))
              (pushnew component (au:href types 'transform)))))
        (root-node scene)))
-    (setf (cache-dirty-p (component-data game-state)) nil)))
+    (setf (cache-dirty-p (component-data core)) nil)))
 
 (defun cache-component (component)
-  (let ((types (au:href (components (active-scene (game-state component)))
+  (let ((types (au:href (components (active-scene (core component)))
                         :active-by-type))
         (type (component-type component)))
     (unless (eq type 'transform)
       (pushnew component (au:href types type)))))
 
 (defun uncache-component (component)
-  (let ((types (au:href (components (active-scene (game-state component)))
+  (let ((types (au:href (components (active-scene (core component)))
                         :active-by-type)))
     (au:deletef (au:href types (component-type component)) component)))
 
-(defun mark-component-types-dirty (game-state)
-  (setf (cache-dirty-p (component-data game-state)) t))
+(defun mark-component-types-dirty (core)
+  (setf (cache-dirty-p (component-data core)) t))
 
-(defun make-component (game-state type &rest args)
-  (let ((component (make-instance type :game-state game-state :type type)))
+(defun make-component (core type &rest args)
+  (let ((component (make-instance type :core core :type type)))
     (apply #'reinitialize-instance component args)
-    (setf (au:href (components (active-scene game-state))
+    (setf (au:href (components (active-scene core))
                    :create-pending
                    component)
           component)
     component))
 
-(defun map-component-type (game-state type func)
-  (let ((components (components (active-scene game-state))))
+(defun map-component-type (core type func)
+  (let ((components (components (active-scene core))))
     (dolist (component (au:href components :active-by-type type))
       (funcall func component))))
 
-(defun map-components (game-state func)
-  (let ((components (components (active-scene game-state))))
-    (dolist (component-type (type-order (component-data game-state)))
+(defun map-components (core func)
+  (let ((components (components (active-scene core))))
+    (dolist (component-type (type-order (component-data core)))
       (unless (eq component-type 'transform)
         (dolist (component (au:href components :active-by-type component-type))
           (funcall func component))))))

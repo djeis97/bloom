@@ -1,8 +1,8 @@
 (in-package :bloom)
 
 (defclass entity ()
-  ((%game-state :reader game-state
-                :initarg :game-state)
+  ((%core :reader core
+          :initarg :core)
    (%id :reader id
         :initarg :id)
    (%state :accessor state
@@ -25,26 +25,26 @@
            :active-by-prefab (au:dict #'equalp)
            :actions (au:dict #'eq)))
 
-(defun make-entity (game-state &key prefab-node)
+(defun make-entity (core &key prefab-node)
   (let* ((id (au:unique-name
               (au:format-symbol *package* "~:@(~a~)-" (name prefab-node))))
-         (scene (active-scene game-state))
+         (scene (active-scene core))
          (entity (make-instance 'entity
                                 :id id
-                                :game-state game-state
+                                :core core
                                 :prefab-node prefab-node)))
     (setf (au:href (entities scene) :create-pending entity) entity)
     entity))
 
 (defun attach-component (entity component)
-  (with-slots (%game-state %id %type %entity) component
+  (with-slots (%core %id %type %entity) component
     (unless %entity
       (setf %entity entity))
     (if (au:href (components %entity) %type)
         (error "Cannot attach multiple transform components.")
         (progn
           (push component (au:href (components %entity) %type))
-          (mark-component-types-dirty %game-state)
+          (mark-component-types-dirty %core)
           (cache-component component)))))
 
 (defun attach-multiple-components (entity &rest components)
@@ -52,13 +52,13 @@
     (attach-component entity component)))
 
 (defun detach-component (entity component)
-  (with-slots (%game-state %id %type) component
+  (with-slots (%core %id %type) component
     (if (eq %type 'transform)
         (error "Cannot detach a transform component.")
         (progn
           (au:deletef (au:href (components entity) %type) component)
           (uncache-component component)
-          (mark-component-types-dirty %game-state)
+          (mark-component-types-dirty %core)
           (on-component-detach component)))))
 
 (defun detach-all-components (entity)
@@ -74,11 +74,11 @@
 (defun has-component-p (entity component-type)
   (when (get-entity-component entity component-type) t))
 
-(defun insert-entity (game-state entity &key parent)
+(defun insert-entity (core entity &key parent)
   (let ((transform (get-entity-component entity 'transform)))
     (when parent
       (add-child (get-entity-component parent 'transform) transform))
-    (mark-component-types-dirty game-state)
+    (mark-component-types-dirty core)
     (au:do-hash-values (components (components entity))
       (dolist (component components)
         (cache-component component)))
@@ -94,14 +94,14 @@
 (defgeneric on-entity-create (entity)
   (:method (entity))
   (:method :after (entity)
-    (v:trace :bloom.entity.create "Created entity ~s." (id entity))))
+    (v:trace :bloom.entity "Created entity ~s." (id entity))))
 
 (defgeneric on-entity-delete (entity)
   (:method (entity))
   (:method :after (entity)
-    (v:trace :bloom.entity.delete "Deleted entity ~s." (id entity))))
+    (v:trace :bloom.entity "Deleted entity ~s." (id entity))))
 
 (defgeneric on-entity-insert (entity)
   (:method (entity))
   (:method :after (entity)
-    (v:trace :bloom.entity.insert "Inserted entity ~s into scene." (id entity))))
+    (v:trace :bloom.entity "Inserted entity ~s into scene." (id entity))))

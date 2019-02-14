@@ -38,15 +38,15 @@
                    (shadow:write-buffer-path buffer :h hs))))
 
 (defun make-spritesheet (sprite)
-  (with-slots (%game-state %name %shaders %spec) sprite
+  (with-slots (%core %name %shaders %spec) sprite
     (au:mvlet* ((path (resolve-path :misc %spec))
                 (spritesheet (make-instance 'spritesheet
                                             :spec (au:safe-read-file-form path)
                                             :name %spec))
                 (vao (gl:gen-vertex-array))
-                (blocks binding (make-shader-blocks %game-state %shaders %name)))
+                (blocks binding (make-shader-blocks %core %shaders %name)))
       (make-shader-buffer %name (first blocks) binding sprite)
-      (setf (au:href (storage %game-state) 'spritesheet-geometry) vao)
+      (setf (au:href (storage %core) 'spritesheet-geometry) vao)
       spritesheet)))
 
 (defun draw-sprite (sprite)
@@ -59,11 +59,11 @@
 ;;; Component event hooks
 
 (defmethod on-component-create ((self sprite))
-  (with-slots (%game-state %spec %spritesheet %geometry %name %initial-index
+  (with-slots (%core %spec %spritesheet %geometry %name %initial-index
                %index)
       self
-    (setf %spritesheet (cache-lookup %game-state :spec %spec
+    (setf %spritesheet (cache-lookup %core :spec %spec
                          (make-spritesheet self))
-          %geometry (au:href (storage %game-state) 'spritesheet-geometry)
+          %geometry (au:href (storage %core) 'spritesheet-geometry)
           %index (au:href (sprites %spritesheet) %name)
           %initial-index %index)))

@@ -10,17 +10,17 @@
   (dolist (primitive (primitives mesh))
     (funcall (draw-func primitive) :instances (instances mesh))))
 
-(defun transform-instances (game-state instances)
+(defun transform-instances (core instances)
   (etypecase instances
     (number instances)
     ((or function symbol)
-     (funcall instances game-state))))
+     (funcall instances core))))
 
 ;;; Component event hooks
 
 (defmethod on-component-create ((self mesh))
-  (with-slots (%game-state %file %index %primitives %instances) self
-    (let ((data (cache-lookup %game-state :mesh-data (cons %file %index)
+  (with-slots (%core %file %index %primitives %instances) self
+    (let ((data (cache-lookup %core :mesh-data (cons %file %index)
                   (load-mesh (resolve-path :mesh %file) :mesh-index %index))))
-      (setf %instances (transform-instances %game-state %instances)
+      (setf %instances (transform-instances %core %instances)
             %primitives data))))

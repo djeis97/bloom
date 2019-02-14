@@ -352,36 +352,36 @@
       (clrhash %parse-tree))
     prefab))
 
-(defun make-prefab-entities (game-state prefab)
+(defun make-prefab-entities (core prefab)
   (let ((prefab-entities (au:dict #'equalp))
-        (scene-entities (entities (active-scene game-state))))
+        (scene-entities (entities (active-scene core))))
     (symbol-macrolet ((active (au:href scene-entities :active-by-prefab
                                        (name prefab))))
       (unless active
         (setf active (au:dict #'eq)))
       (au:do-hash (path node (parse-tree prefab))
-        (let ((entity (make-entity game-state :prefab-node node)))
+        (let ((entity (make-entity core :prefab-node node)))
           (setf (au:href prefab-entities path) entity
                 (au:href active (id entity)) entity)))
       prefab-entities)))
 
-(defun make-prefab-entity-components (game-state entities)
+(defun make-prefab-entity-components (core entities)
   (au:do-hash-values (entity entities)
-    (dolist (type (type-order (component-data game-state)))
+    (dolist (type (type-order (component-data core)))
       (au:when-let (table (au:href (components-table (prefab-node entity)) type))
         (au:do-hash-values (data table)
           (let* ((args (loop :for (k v) :on (getf data :args) :by #'cddr
                              :append (list k (eval v))))
-                 (component (apply #'make-component game-state type :id type
+                 (component (apply #'make-component core type :id type
                                    args)))
             (attach-component entity component)))))))
 
-(defun make-prefab-entity-relationships (game-state prefab entities)
+(defun make-prefab-entity-relationships (core prefab entities)
   (labels ((get-transform (node)
              (get-entity-component (au:href entities (path node)) 'transform))
            (get-root-node ()
              (let ((root-node (get-transform (root prefab))))
-               (setf (root-node (active-scene game-state)) root-node)
+               (setf (root-node (active-scene core)) root-node)
                root-node)))
     (au:do-hash-values (entity entities)
       (let ((node (prefab-node entity)))
@@ -393,8 +393,8 @@
            (get-transform child)))))
     entities))
 
-(defun remove-prefab-entities (game-state prefab)
-  (let ((entity-table (entities (active-scene game-state))))
+(defun remove-prefab-entities (core prefab)
+  (let ((entity-table (entities (active-scene core))))
     (au:do-hash-values (entity (au:href entity-table :active-by-name))
       (with-slots (%prefab-node) entity
         (au:do-hash-keys (path (parse-tree prefab))
@@ -402,10 +402,10 @@
             (delete-entity entity)))))))
 
 (defun make-prefab-factory (prefab)
-  (lambda (game-state)
-    (let ((entities (make-prefab-entities game-state prefab)))
-      (make-prefab-entity-components game-state entities)
-      (make-prefab-entity-relationships game-state prefab entities))))
+  (lambda (core)
+    (let ((entities (make-prefab-entities core prefab)))
+      (make-prefab-entity-components core entities)
+      (make-prefab-entity-relationships core prefab entities))))
 
 (defmacro define-prefab (name &body body)
   (au:with-unique-names (prefab)

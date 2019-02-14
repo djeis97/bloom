@@ -35,6 +35,15 @@
 (defmethod initialize-instance :after ((object frame-manager) &key)
   (reinitialize-instance object :delta (float (delta object) 1f0)))
 
+(defun make-frame-manager (core)
+  (with-slots (%project %frame-manager) core
+    (setf %frame-manager
+          (make-instance 'frame-manager
+                         :vsync-p (option %project :vsync)
+                         :delta (option %project :physics-delta)
+                         :period (option %project :periodic-interval)
+                         :debug-interval (option %project :debug-interval)))))
+
 (defun get-time ()
   #+sbcl
   (multiple-value-bind (s ms) (sb-ext:get-time-of-day)
@@ -61,41 +70,40 @@
            (fps (/ %debug-count debug-interval)))
       (when (and (>= elapsed-seconds debug-interval)
                  (plusp fps))
-        (v:debug :bloom.engine.frame.rate "Frame rate: ~,2f fps (~,3f ms/f)"
+        (v:debug :bloom.frame "Frame rate: ~,2f fps (~,3f ms/f)"
                  fps (/ 1000 fps))
         (setf %debug-count 0
               %debug-time now))
       (incf %debug-count))))
 
-(defun initialize-frame-time (game-state)
-  (with-slots (%start %now) (frame-manager game-state)
+(defun initialize-frame-time (core)
+  (with-slots (%start %now) (frame-manager core)
     (let ((time (get-time)))
       (setf %start time
             %now %start))))
 
-(defun perform-physics-update (game-state)
-  (with-slots (%alpha %delta %accumulator %frame-time) (frame-manager game-state)
+(defun perform-physics-update (core)
+  (with-slots (%alpha %delta %accumulator %frame-time) (frame-manager core)
     (incf %accumulator %frame-time)
     (au:while (>= %accumulator %delta)
-      (map-component-type game-state 'transform #'on-component-update)
-      (map-components game-state #'on-component-physics-update)
+      (step/physics core)
       (decf %accumulator %delta))
     (setf %alpha (/ %accumulator %delta))))
 
-(defun perform-periodic-update (game-state)
-  (with-slots (%now %period-elapsed %period-interval) (frame-manager game-state)
+(defun perform-periodic-update (core)
+  (with-slots (%now %period-elapsed %period-interval) (frame-manager core)
     (let ((interval %period-interval))
       (when (and interval
                  (>= (- %now %period-elapsed) interval))
-        (periodic-update-step game-state)
-        (v:trace :bloom.engine.frame.periodic-update
+        (step/periodic core)
+        (v:trace :bloom.frame
                  "Periodic update performed (every ~d seconds)"
                  interval)
         (setf %period-elapsed %now)))))
 
-(defun tick (game-state)
-  (let ((frame-manager (frame-manager game-state))
-        (refresh-rate (refresh-rate (display game-state))))
+(defun tick (core)
+  (let ((frame-manager (frame-manager core))
+        (refresh-rate (refresh-rate (display core))))
     (with-slots (%start %now %before %total-time %frame-time %pause-time
                  %vsync-p)
         frame-manager
@@ -106,7 +114,7 @@
             %pause-time 0)
       (when %vsync-p
         (smooth-delta-time frame-manager refresh-rate))
-      (perform-physics-update game-state)
-      (perform-periodic-update game-state)
+      (perform-physics-update core)
+      (perform-periodic-update core)
       (calculate-frame-rate frame-manager)
       (values))))

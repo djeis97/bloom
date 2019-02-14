@@ -52,14 +52,14 @@
               (state-exit state) nil)))
     (setf exiting nil)))
 
-(defun input-enter-p (game-state input)
-  (au:when-let ((state (au:href (states (input-data game-state)) input)))
+(defun input-enter-p (core input)
+  (au:when-let ((state (au:href (states (input-data core)) input)))
     (state-enter state)))
 
-(defun input-enabled-p (game-state input)
-  (au:when-let ((state (au:href (states (input-data game-state)) input)))
+(defun input-enabled-p (core input)
+  (au:when-let ((state (au:href (states (input-data core)) input)))
     (state-enabled state)))
 
-(defun input-exit-p (game-state input)
-  (au:when-let ((state (au:href (states (input-data game-state)) input)))
+(defun input-exit-p (core input)
+  (au:when-let ((state (au:href (states (input-data core)) input)))
     (state-exit state)))

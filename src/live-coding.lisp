@@ -13,7 +13,7 @@
      (restart-case (progn ,@body)
        (continue ()
          :report ,report
-         (with-slots (%pause-time) (frame-manager *game-state*)
+         (with-slots (%pause-time) (frame-manager *core*)
            (when debugger-entry-time
              (setf %pause-time (- (get-time) debugger-entry-time))))))))
 

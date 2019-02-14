@@ -1,7 +1,7 @@
 (in-package :bloom)
 
-(defun enable-logging (game-state)
-  (let* ((project (project game-state))
+(defun enable-logging (core)
+  (let* ((project (project core))
          (error-file (resolve-path :log (option project :log-file-error)))
          (debug-file (resolve-path :log (option project :log-file-debug))))
     (uiop:ensure-all-directories-exist (list error-file debug-file))

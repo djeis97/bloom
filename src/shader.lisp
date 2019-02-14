@@ -1,30 +1,30 @@
 (in-package :bloom)
 
-(defun initialize-shaders (game-state)
+(defun initialize-shaders (core)
   (shadow:reset-program-state)
   (shadow:enable-dependency-tracking)
   (shadow:build-shader-dictionary)
-  (shadow:set-modify-hook (generate-shader-modified-hook game-state)))
+  (shadow:set-modify-hook (generate-shader-modified-hook core)))
 
-(defmethod perform-task (game-state (type (eql :shader)) data)
+(defmethod perform-task (core (type (eql :shader)) data)
   (when data
     (shadow:translate-shader-programs data)
     (shadow:build-shader-programs data)
     (shadow:rebind-blocks data)
-    (shader-modified-post-hook game-state)
-    (v:debug :bloom.shader.recompile "Recompiled shader programs: ~{~s~^, ~}" data)))
+    (shader-modified-post-hook core)
+    (v:debug :bloom.shader "Recompiled shader programs: ~{~s~^, ~}" data)))
 
-(defun generate-shader-modified-hook (game-state)
-  (lambda (data) (schedule-task game-state :shader data)))
+(defun generate-shader-modified-hook (core)
+  (lambda (data) (schedule-task core :shader data)))
 
-(defmethod shader-modified-post-hook (game-state))
+(defmethod shader-modified-post-hook (core))
 
 (defun shutdown-shaders ()
   (shadow:set-modify-hook (constantly nil))
   (shadow:disable-dependency-tracking))
 
-(defun make-shader-blocks (game-state shaders name)
-  (symbol-macrolet ((binding (au:href (storage game-state) 'shader-bindings)))
+(defun make-shader-blocks (core shaders name)
+  (symbol-macrolet ((binding (au:href (storage core) 'shader-bindings)))
     (unless binding
       (setf binding 0))
     (incf binding)

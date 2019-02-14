@@ -1,32 +1,32 @@
 (in-package :bloom)
 
-(defun flow/update (game-state)
-  (flow/switch-scene game-state)
-  (flow/actions game-state)
-  (flow/create game-state)
-  (flow/delete game-state))
+(defun flow/update (core)
+  (flow/switch-scene core)
+  (flow/actions core)
+  (flow/create core)
+  (flow/delete core))
 
 ;; switch scene
 
-(defun flow/switch-scene (game-state)
-  (with-slots (%active-scene %next-scene) game-state
+(defun flow/switch-scene (core)
+  (with-slots (%active-scene %next-scene) core
     (when %next-scene
       (unless (eq %active-scene %next-scene)
         (setf %active-scene %next-scene)))))
 
 ;; actions
 
-(defun flow/actions (game-state)
-  (let ((action-table (actions (active-scene game-state))))
+(defun flow/actions (core)
+  (let ((action-table (actions (active-scene core))))
     (au:do-hash-values (v (au:href action-table :create-pending))
       (remhash v (au:href action-table :create-pending))
       (setf (au:href action-table :created v) v
             (state v) :created))
-    (flow/actions/activate game-state)))
+    (flow/actions/activate core)))
 
-(defun flow/actions/activate (game-state)
-  (let ((entity-table (entities (active-scene game-state)))
-        (action-table (actions (active-scene game-state))))
+(defun flow/actions/activate (core)
+  (let ((entity-table (entities (active-scene core)))
+        (action-table (actions (active-scene core))))
     (au:do-hash-values (v (au:href action-table :created))
       (with-slots (%type %owner %state %location) v
         (remhash v (au:href action-table :created))
@@ -34,54 +34,54 @@
         (setf (au:href entity-table :actions %owner) (actions %owner)
               %state :active)
         (apply #'insert-action v (au:ensure-list %location))))
-    (flow/actions/process game-state)))
+    (flow/actions/process core)))
 
-(defun flow/actions/process (game-state)
-  (let ((entity-table (entities (active-scene game-state))))
+(defun flow/actions/process (core)
+  (let ((entity-table (entities (active-scene core))))
     (au:do-hash-values (v (au:href entity-table :actions))
       (process-actions v))))
 
 ;; create
 
-(defun flow/create (game-state)
-  (let* ((scene (active-scene game-state))
+(defun flow/create (core)
+  (let* ((scene (active-scene core))
          (entity-table (entities scene))
          (component-table (components scene)))
     (when (or (plusp (hash-table-count (au:href entity-table :create-pending)))
               (plusp (hash-table-count
                       (au:href component-table :create-pending))))
-      (flow/create/components game-state))))
+      (flow/create/components core))))
 
-(defun flow/create/components (game-state)
-  (let ((component-table (components (active-scene game-state))))
-    (dolist (type (type-order (component-data game-state)))
+(defun flow/create/components (core)
+  (let ((component-table (components (active-scene core))))
+    (dolist (type (type-order (component-data core)))
       (au:do-hash-values (v (au:href component-table :create-pending))
         (when (eq (component-type v) type)
           (remhash v (au:href component-table :create-pending))
           (setf (au:href component-table :created v) v
                 (state v) :created)
           (on-component-create v))))
-    (flow/create/entities game-state)))
+    (flow/create/entities core)))
 
-(defun flow/create/entities (game-state)
-  (let ((entity-table (entities (active-scene game-state))))
+(defun flow/create/entities (core)
+  (let ((entity-table (entities (active-scene core))))
     (au:do-hash-values (v (au:href entity-table :create-pending))
       (remhash v (au:href entity-table :create-pending))
       (setf (au:href entity-table :created v) v
             (state v) :created))
-    (flow/create/activate-components game-state)))
+    (flow/create/activate-components core)))
 
-(defun flow/create/activate-components (game-state)
-  (let ((component-table (components (active-scene game-state))))
+(defun flow/create/activate-components (core)
+  (let ((component-table (components (active-scene core))))
     (au:do-hash-values (v (au:href component-table :created))
       (remhash v (au:href component-table :created))
       (pushnew v (au:href component-table :active-by-type (component-type v)))
       (setf (state v) :active)
       (on-component-attach v))
-    (flow/create/activate-entities game-state)))
+    (flow/create/activate-entities core)))
 
-(defun flow/create/activate-entities (game-state)
-  (let ((entity-table (entities (active-scene game-state))))
+(defun flow/create/activate-entities (core)
+  (let ((entity-table (entities (active-scene core))))
     (au:do-hash-values (v (au:href entity-table :created))
       (remhash v (au:href entity-table :created))
       (setf (au:href entity-table :active-by-name (id v)) v
@@ -89,12 +89,12 @@
 
 ;;; delete
 
-(defun flow/delete (game-state)
-  (flow/delete/entities game-state)
-  (flow/delete/components game-state))
+(defun flow/delete (core)
+  (flow/delete/entities core)
+  (flow/delete/components core))
 
-(defun flow/delete/entities (game-state)
-  (let ((entity-table (entities (active-scene game-state))))
+(defun flow/delete/entities (core)
+  (let ((entity-table (entities (active-scene core))))
     (au:do-hash (k entity (au:href entity-table :active-by-name))
       (when (eq (state entity) :destroy)
         (au:do-hash-values (components (components entity))
@@ -104,8 +104,8 @@
         (let ((prefab-name (name (prefab (prefab-node entity)))))
           (remhash k (au:href entity-table :active-by-prefab prefab-name)))))))
 
-(defun flow/delete/components (game-state)
-  (let ((component-table (components (active-scene game-state))))
+(defun flow/delete/components (core)
+  (let ((component-table (components (active-scene core))))
     (au:do-hash (k v (au:href component-table :active-by-type))
       (dolist (component v)
         (when (eq (state component) :destroy)
