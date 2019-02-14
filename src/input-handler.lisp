@@ -43,11 +43,13 @@
      (:x x :y y :xrel dx :yrel dy)
      (on-mouse-move input-data x y dx dy))
     (:keyup
-     (:keysym keysym)
-     (on-key-up input-data (aref +key-names+ (sdl2:scancode-value keysym))))
+     (:keysym keysym :repeat repeat)
+     (when (zerop repeat)
+       (on-key-up input-data (aref +key-names+ (sdl2:scancode-value keysym)))))
     (:keydown
-     (:keysym keysym)
-     (on-key-down input-data (aref +key-names+ (sdl2:scancode-value keysym))))
+     (:keysym keysym :repeat repeat)
+     (when (zerop repeat)
+       (on-key-down input-data (aref +key-names+ (sdl2:scancode-value keysym)))))
     (:controllerdeviceadded
      (:which index)
      (on-gamepad-attach input-data index))
