@@ -32,7 +32,7 @@
             (update-material-definition dep %shader %target uniforms-table))))
       (when *core*
         (au:when-let* ((table
-                        (au:href (materials (active-scene *core*)) %id))
+                        (au:href (materials (get-current-scene *core*)) %id))
                        (table-copy (au:copy-hash-table table)))
           (clrhash table)
           (au:do-hash-keys (k table-copy)
@@ -128,7 +128,7 @@
       (target definition)
     (with-slots (%id %uniforms) definition
       (let* ((core (core render))
-             (scene (active-scene core))
+             (scene (get-current-scene core))
              (shader (or (shader render) (shader definition)))
              (framebuffer (find-framebuffer core framebuffer))
              (attachments (framebuffer-attachment-names->points

@@ -20,25 +20,28 @@
             :initform nil)))
 
 (defun make-scenes (core)
-  (let ((default (option (project core) :default-scene)))
-    (au:do-hash-keys (name *scene-definitions*)
-      (let ((scene (make-instance 'scene :name name)))
-        (setf (au:href (scenes core) name) scene)))
-    (setf (active-scene core) nil)
-    (load-scene core default)))
+  (with-slots (%project %scenes) core
+    (let ((default (option %project :default-scene)))
+      (au:do-hash-keys (name *scene-definitions*)
+        (let ((scene (make-instance 'scene :name name)))
+          (setf (au:href (table %scenes) name) scene)))
+      (setf (current %scenes) nil)
+      (load-scene core default))))
 
 (defun switch-scene (core scene-name)
-  (au:if-found (scene (au:href (scenes core) scene-name))
-               (progn (load-scene core scene-name)
-                      (setf (next-scene core) scene))
-               (error "Scene ~s is not defined." scene-name)))
+  (with-slots (%table %next) (scenes core)
+    (au:if-found (scene (au:href %table scene-name))
+                 (progn (load-scene core scene-name)
+                        (setf %next scene))
+                 (error "Scene ~s is not defined." scene-name))))
 
 (defun load-scene (core scene-name)
-  (let ((scene (au:href (scenes core) scene-name)))
-    (unless (loaded-p scene)
-      (setf (active-scene core) scene)
-      (funcall (au:href *scene-definitions* scene-name) core)
-      (setf (loaded-p scene) t))))
+  (with-slots (%table %current) (scenes core)
+    (let ((scene (au:href %table scene-name)))
+      (unless (loaded-p scene)
+        (setf %current scene)
+        (funcall (au:href *scene-definitions* scene-name) core)
+        (setf (loaded-p scene) t)))))
 
 (defmacro define-scenes (&body body)
   `(progn
@@ -49,3 +52,14 @@
             (destructuring-bind (scene-name prefab-name) spec
               (collect `(au:href *scene-definitions* ',scene-name))
               (collect `(func (find-prefab ,prefab-name)))))))))
+
+(defclass scene-manager ()
+  ((%current :accessor current
+             :initform nil)
+   (%next :accessor next
+          :initform nil)
+   (%table :reader table
+           :initform (au:dict #'eq))))
+
+(defun get-current-scene (core)
+  (current (scenes core)))

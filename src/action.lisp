@@ -62,7 +62,7 @@
     (funcall %shape (* 2 (au:clamp (/ %elapsed %duration) 0f0 1f0)))))
 
 (defun make-action (entity &rest args)
-  (let ((action-table (actions (active-scene (core entity))))
+  (let ((action-table (actions (get-current-scene (core entity))))
         (action (apply #'make-instance 'action
                        :owner entity
                        :allow-other-keys t

@@ -14,10 +14,10 @@
   (model (transform render)))
 
 (defun get-render-view (render)
-  (view (camera (active-scene (core render)))))
+  (view (camera (get-current-scene (core render)))))
 
 (defun get-render-projection (render)
-  (projection (camera (active-scene (core render)))))
+  (projection (camera (get-current-scene (core render)))))
 
 (defun get-render-time (render)
   (total-time (frame-manager (core render))))
@@ -42,7 +42,7 @@
 (defmethod on-component-destroy ((self render))
   (with-slots (%core %material) self
     (let ((material-definition (id (definition %material)))
-          (scene-materials (materials (active-scene %core))))
+          (scene-materials (materials (get-current-scene %core))))
       (remhash %material (au:href scene-materials material-definition)))))
 
 (defmethod on-component-attach ((self render))

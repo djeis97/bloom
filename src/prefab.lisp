@@ -354,7 +354,7 @@
 
 (defun make-prefab-entities (core prefab)
   (let ((prefab-entities (au:dict #'equalp))
-        (scene-entities (entities (active-scene core))))
+        (scene-entities (entities (get-current-scene core))))
     (symbol-macrolet ((active (au:href scene-entities :active-by-prefab
                                        (name prefab))))
       (unless active
@@ -381,7 +381,7 @@
              (get-entity-component (au:href entities (path node)) 'transform))
            (get-root-node ()
              (let ((root-node (get-transform (root prefab))))
-               (setf (root-node (active-scene core)) root-node)
+               (setf (root-node (get-current-scene core)) root-node)
                root-node)))
     (au:do-hash-values (entity entities)
       (let ((node (prefab-node entity)))
@@ -394,7 +394,7 @@
     entities))
 
 (defun remove-prefab-entities (core prefab)
-  (let ((entity-table (entities (active-scene core))))
+  (let ((entity-table (entities (get-current-scene core))))
     (au:do-hash-values (entity (au:href entity-table :active-by-name))
       (with-slots (%prefab-node) entity
         (au:do-hash-keys (path (parse-tree prefab))

@@ -1,7 +1,6 @@
 (in-package :bloom)
 
 (define-component camera (:after (transform))
-  (scene nil)
   (active-p nil)
   (view (m:mat4 1))
   (projection (m:mat4 1))
@@ -13,6 +12,9 @@
   (transform nil)
   (target nil)
   (follow-z-axis-p nil))
+
+(defun get-current-camera (core)
+  (camera (get-current-scene core)))
 
 (defun set-camera-view (camera)
   (with-slots (%entity %target %follow-z-axis-p) camera
@@ -58,7 +60,7 @@
                                  (m:rotate :local m:+id-quat+ rotation))))))
 
 (defun zoom-camera (core offset)
-  (let ((camera (camera (active-scene core))))
+  (let ((camera (get-current-camera core)))
     (setf (fov-y camera) (au:clamp (- (fov-y camera) offset) 1.0 45.0))
     (set-camera-projection core (mode camera) camera)))
 
@@ -71,15 +73,14 @@
         (translate-transform %transform translation)))))
 
 (defun switch-camera-target (target)
-  (let ((camera (camera (active-scene (core target)))))
+  (let ((camera (get-current-camera (core target))))
     (setf (target camera) target)))
 
 ;;; Component event hooks
 
 (defmethod on-component-attach ((self camera))
-  (with-slots (%core %entity %scene %mode %fov-y %transform) self
-    (setf %scene (active-scene %core)
-          (camera %scene) self
+  (with-slots (%core %entity %mode %fov-y %transform) self
+    (setf (camera (get-current-scene %core)) self
           %fov-y (* %fov-y (/ pi 180))
           %transform (get-entity-component %entity 'transform))
     (correct-camera-transform self)

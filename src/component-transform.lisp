@@ -91,19 +91,19 @@
     (transform-node/quat (rotation node) %delta %frame-time)
     (transform-node/vector (translation node) %delta %frame-time)))
 
-(defun resolve-local (node alpha)
+(defun resolve-local (node factor)
   (with-slots (%local %scaling %rotation %translation) node
-    (interpolate-vector %scaling alpha)
-    (interpolate-quaternion %rotation alpha)
-    (interpolate-vector %translation alpha)
+    (interpolate-vector %scaling factor)
+    (interpolate-quaternion %rotation factor)
+    (interpolate-vector %translation factor)
     (m:* (m:copy-into %local (m:mat4 (interpolated %rotation)))
          (m:set-scale m:+id-mat4+ (interpolated %scaling))
          %local)
     (m:set-translation %local (interpolated %translation) %local)))
 
-(defun resolve-model (node alpha)
+(defun resolve-model (node factor)
   (au:when-let ((parent (parent node)))
-    (resolve-local node alpha)
+    (resolve-local node factor)
     (m:* (model parent) (local node) (model node))))
 
 (defun map-nodes (func parent)
@@ -112,11 +112,10 @@
     (map-nodes func child)))
 
 (defun interpolate-transforms (core)
-  (with-slots (%active-scene %frame-manager) core
-    (map-nodes
-     (lambda (node)
-       (resolve-model node (alpha %frame-manager)))
-     (root-node %active-scene))))
+  (map-nodes
+   (lambda (node)
+     (resolve-model node (factor (frame-manager core))))
+   (root-node (get-current-scene core))))
 
 (defmethod reinitialize-instance ((instance transform)
                                   &key

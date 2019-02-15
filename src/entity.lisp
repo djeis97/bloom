@@ -28,12 +28,12 @@
 (defun make-entity (core &key prefab-node)
   (let* ((id (au:unique-name
               (au:format-symbol *package* "~:@(~a~)-" (name prefab-node))))
-         (scene (active-scene core))
+         (entities (entities (get-current-scene core)))
          (entity (make-instance 'entity
                                 :id id
                                 :core core
                                 :prefab-node prefab-node)))
-    (setf (au:href (entities scene) :create-pending entity) entity)
+    (setf (au:href entities :create-pending entity) entity)
     entity))
 
 (defun attach-component (entity component)

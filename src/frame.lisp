@@ -18,8 +18,8 @@
    (%frame-count :accessor frame-count
                  :initform 0)
    (%accumulator :initform 0)
-   (%alpha :reader alpha
-           :initform 0)
+   (%factor :reader factor
+            :initform 0)
    (%vsync-p :reader vsync-p
              :initarg :vsync-p)
    (%period-elapsed :initform (get-time))
@@ -83,12 +83,12 @@
             %now %start))))
 
 (defun perform-physics-update (core)
-  (with-slots (%alpha %delta %accumulator %frame-time) (frame-manager core)
+  (with-slots (%factor %delta %accumulator %frame-time) (frame-manager core)
     (incf %accumulator %frame-time)
     (au:while (>= %accumulator %delta)
       (step/physics core)
       (decf %accumulator %delta))
-    (setf %alpha (/ %accumulator %delta))))
+    (setf %factor (/ %accumulator %delta))))
 
 (defun perform-periodic-update (core)
   (with-slots (%now %period-elapsed %period-interval) (frame-manager core)

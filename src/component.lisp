@@ -64,19 +64,19 @@
 (defun make-component (core type &rest args)
   (let ((component (make-instance type :core core :type type)))
     (apply #'reinitialize-instance component args)
-    (setf (au:href (components (active-scene core))
+    (setf (au:href (components (get-current-scene core))
                    :create-pending
                    component)
           component)
     component))
 
 (defun map-component-type (core type func)
-  (let ((components (components (active-scene core))))
+  (let ((components (components (get-current-scene core))))
     (dolist (component (au:href components :active-by-type type))
       (funcall func component))))
 
 (defun map-components (core func)
-  (let ((components (components (active-scene core))))
+  (let ((components (components (get-current-scene core))))
     (dolist (component-type (type-order (component-data core)))
       (unless (eq component-type 'transform)
         (dolist (component (au:href components :active-by-type component-type))

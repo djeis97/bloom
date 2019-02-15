@@ -8,15 +8,15 @@
 ;; switch scene
 
 (defun flow/switch-scene (core)
-  (with-slots (%active-scene %next-scene) core
-    (when %next-scene
-      (unless (eq %active-scene %next-scene)
-        (setf %active-scene %next-scene)))))
+  (with-slots (%current %next) (scenes core)
+    (when %next
+      (unless (eq %current %next)
+        (setf %current %next)))))
 
 ;; actions
 
 (defun flow/actions (core)
-  (let ((action-table (actions (active-scene core))))
+  (let ((action-table (actions (get-current-scene core))))
     (au:do-hash-values (v (au:href action-table :create-pending))
       (remhash v (au:href action-table :create-pending))
       (setf (au:href action-table :created v) v
@@ -24,8 +24,9 @@
     (flow/actions/activate core)))
 
 (defun flow/actions/activate (core)
-  (let ((entity-table (entities (active-scene core)))
-        (action-table (actions (active-scene core))))
+  (let* ((scene (get-current-scene core))
+         (entity-table (entities scene))
+         (action-table (actions scene)))
     (au:do-hash-values (v (au:href action-table :created))
       (with-slots (%type %owner %state %location) v
         (remhash v (au:href action-table :created))
@@ -36,14 +37,14 @@
     (flow/actions/process core)))
 
 (defun flow/actions/process (core)
-  (let ((entity-table (entities (active-scene core))))
+  (let ((entity-table (entities (get-current-scene core))))
     (au:do-hash-values (v (au:href entity-table :actions))
       (process-actions v))))
 
 ;; create
 
 (defun flow/create (core)
-  (let* ((scene (active-scene core))
+  (let* ((scene (get-current-scene core))
          (entity-table (entities scene))
          (component-table (components scene)))
     (when (or (plusp (hash-table-count (au:href entity-table :create-pending)))
@@ -52,7 +53,7 @@
       (flow/create/components core))))
 
 (defun flow/create/components (core)
-  (let ((component-table (components (active-scene core))))
+  (let ((component-table (components (get-current-scene core))))
     (dolist (type (type-order (component-data core)))
       (au:do-hash-values (v (au:href component-table :create-pending))
         (when (eq (component-type v) type)
@@ -63,7 +64,7 @@
     (flow/create/entities core)))
 
 (defun flow/create/entities (core)
-  (let ((entity-table (entities (active-scene core))))
+  (let ((entity-table (entities (get-current-scene core))))
     (au:do-hash-values (v (au:href entity-table :create-pending))
       (remhash v (au:href entity-table :create-pending))
       (setf (au:href entity-table :created v) v
@@ -71,7 +72,7 @@
     (flow/create/activate-components core)))
 
 (defun flow/create/activate-components (core)
-  (let ((component-table (components (active-scene core))))
+  (let ((component-table (components (get-current-scene core))))
     (au:do-hash-values (v (au:href component-table :created))
       (remhash v (au:href component-table :created))
       (pushnew v (au:href component-table :active-by-type (component-type v)))
@@ -80,7 +81,7 @@
     (flow/create/activate-entities core)))
 
 (defun flow/create/activate-entities (core)
-  (let ((entity-table (entities (active-scene core))))
+  (let ((entity-table (entities (get-current-scene core))))
     (au:do-hash-values (v (au:href entity-table :created))
       (remhash v (au:href entity-table :created))
       (setf (au:href entity-table :active-by-name (id v)) v
@@ -93,7 +94,7 @@
   (flow/delete/components core))
 
 (defun flow/delete/entities (core)
-  (let ((entity-table (entities (active-scene core))))
+  (let ((entity-table (entities (get-current-scene core))))
     (au:do-hash (k entity (au:href entity-table :active-by-name))
       (when (eq (state entity) :destroy)
         (au:do-hash-values (components (components entity))
@@ -104,7 +105,7 @@
           (remhash k (au:href entity-table :active-by-prefab prefab-name)))))))
 
 (defun flow/delete/components (core)
-  (let ((component-table (components (active-scene core))))
+  (let ((component-table (components (get-current-scene core))))
     (au:do-hash (k v (au:href component-table :active-by-type))
       (dolist (component v)
         (when (eq (state component) :destroy)

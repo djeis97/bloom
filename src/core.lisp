@@ -17,24 +17,12 @@
                     :initform (make-instance 'component-data))
    (%framebuffers :reader framebuffers
                   :initform (au:dict #'eq))
-   (%viewport-mode :accessor viewport-mode
-                   :initform :full-screen)
    (%resource-cache :reader resource-cache
                     :initform (au:dict #'equalp))
    (%storage :reader storage
              :initform (au:dict #'eq))
    (%scenes :reader scenes
-            :initform (au:dict #'eq))
-   (%active-scene :accessor active-scene)
-   (%next-scene :accessor next-scene
-                :initform nil)))
-
-(defun profile (core duration)
-  (with-profile
-    (with-slots (%running-p %frame-manager) core
-      (main-loop core duration)
-      #++(when %running-p
-           (stop core)))))
+            :initform (make-instance 'scene-manager))))
 
 (defun launch (project &optional duration)
   (unless *core*
