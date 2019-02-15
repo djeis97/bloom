@@ -87,16 +87,12 @@
   (with-continue-restart "Bloom"
     (with-slots (%running-p %display %frame-manager) core
       (when %running-p
-        (handle-events (input-data core))
         (tick core)
-        (interpolate-transforms core)
-        (cache-transform-components core)
+        (handle-events core)
         (flow/update core)
+        (interpolate-transforms core)
         (map-components core #'on-component-update)
-        (clear-screen %display)
-        (map-components core #'on-component-render)
-        (sdl2:gl-swap-window (window %display))
-        (incf (frame-count %frame-manager)))
+        (update-display core))
       ;; TODO: Remove this later when possible.
       (when (input-enter-p core '(:key :escape))
         (stop core)))))

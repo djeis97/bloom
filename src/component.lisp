@@ -3,9 +3,7 @@
 (defvar *component-definitions* (au:dict #'eq))
 
 (defclass component-data ()
-  ((%type-order :accessor type-order)
-   (%cache-dirty-p :accessor cache-dirty-p
-                   :initform t)))
+  ((%type-order :accessor type-order)))
 
 (defclass component ()
   ((%core :reader core
@@ -62,35 +60,6 @@
                be computed.")
       (setf (type-order (component-data core))
             (mapcar #'cl-graph:element (cl-graph:topological-sort graph))))))
-
-(defun cache-transform-components (core)
-  (when (cache-dirty-p (component-data core))
-    (let* ((scene (active-scene core))
-           (types (au:href (components scene) :active-by-type)))
-      (remhash 'transform types)
-      (map-nodes
-       (lambda (x)
-         (when x
-           (au:when-let* ((entity (entity x))
-                          (component (get-entity-component entity 'transform)))
-             (pushnew component (au:href types 'transform)))))
-       (root-node scene)))
-    (setf (cache-dirty-p (component-data core)) nil)))
-
-(defun cache-component (component)
-  (let ((types (au:href (components (active-scene (core component)))
-                        :active-by-type))
-        (type (component-type component)))
-    (unless (eq type 'transform)
-      (pushnew component (au:href types type)))))
-
-(defun uncache-component (component)
-  (let ((types (au:href (components (active-scene (core component)))
-                        :active-by-type)))
-    (au:deletef (au:href types (component-type component)) component)))
-
-(defun mark-component-types-dirty (core)
-  (setf (cache-dirty-p (component-data core)) t))
 
 (defun make-component (core type &rest args)
   (let ((component (make-instance type :core core :type type)))

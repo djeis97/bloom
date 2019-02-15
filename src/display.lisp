@@ -70,3 +70,10 @@
           (values (* 0.25 (abs (sin (total-time %frame-manager)))) 0 0 1)
           (values 0 0 0 1)))
     (gl:clear :color-buffer :depth-buffer)))
+
+(defun update-display (core)
+  (with-slots (%display %frame-manager) core
+    (clear-screen %display)
+    (map-components core #'on-component-render)
+    (sdl2:gl-swap-window (window %display))
+    (incf (frame-count %frame-manager))))

@@ -76,9 +76,10 @@
     (enable-entering input-data)
     (disable-exiting input-data)))
 
-(defun handle-events (input-data)
-  (perform-input-state-tasks input-data)
-  (loop :with event = (sdl2:new-event)
-        :until (zerop (sdl2:next-event event :poll))
-        :do (dispatch-event input-data event)
-        :finally (sdl2:free-event event)))
+(defun handle-events (core)
+  (with-slots (%input-data) core
+    (perform-input-state-tasks %input-data)
+    (loop :with event = (sdl2:new-event)
+          :until (zerop (sdl2:next-event event :poll))
+          :do (dispatch-event %input-data event)
+          :finally (sdl2:free-event event))))

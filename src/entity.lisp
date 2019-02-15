@@ -42,10 +42,7 @@
       (setf %entity entity))
     (if (au:href (components %entity) %type)
         (error "Cannot attach multiple transform components.")
-        (progn
-          (push component (au:href (components %entity) %type))
-          (mark-component-types-dirty %core)
-          (cache-component component)))))
+        (push component (au:href (components %entity) %type)))))
 
 (defun attach-multiple-components (entity &rest components)
   (dolist (component components)
@@ -57,8 +54,6 @@
         (error "Cannot detach a transform component.")
         (progn
           (au:deletef (au:href (components entity) %type) component)
-          (uncache-component component)
-          (mark-component-types-dirty %core)
           (on-component-detach component)))))
 
 (defun detach-all-components (entity)
@@ -74,14 +69,10 @@
 (defun has-component-p (entity component-type)
   (when (get-entity-component entity component-type) t))
 
-(defun insert-entity (core entity &key parent)
+(defun insert-entity (entity &key parent)
   (let ((transform (get-entity-component entity 'transform)))
     (when parent
       (add-child (get-entity-component parent 'transform) transform))
-    (mark-component-types-dirty core)
-    (au:do-hash-values (components (components entity))
-      (dolist (component components)
-        (cache-component component)))
     (on-entity-insert entity)))
 
 (defun delete-entity (entity)
