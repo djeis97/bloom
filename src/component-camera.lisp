@@ -56,7 +56,7 @@
   (with-slots (%rotation) (transform camera)
     (let ((rotation (m:vec3 (- (asin (/ (sqrt 3)))) 0 (/ pi 4))))
       (set-camera-projection core :orthographic camera)
-      (setf (current %rotation) (m:inverse
+      (setf (current %rotation) (m:invert
                                  (m:rotate :local m:+id-quat+ rotation))))))
 
 (defun zoom-camera (core offset)
