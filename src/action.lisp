@@ -33,7 +33,9 @@
                :initform nil)
    (%shape :reader shape
            :initarg :shape
-           :initform 'm:linear)))
+           :initform 'm:linear)
+   (%lanes :reader lanes
+           :initform 1)))
 
 (defun make-action-table ()
   (au:dict #'eq
@@ -63,21 +65,25 @@
 
 (defun make-action (entity &rest args)
   (let ((action-table (actions (get-current-scene (core entity))))
-        (action (apply #'make-instance 'action
+        (action (apply #'make-instance (getf args :type)
                        :owner entity
-                       :allow-other-keys t
                        args)))
-    (apply #'change-class action (getf args :type) args)
     (setf (au:href action-table :create-pending action) action)))
 
+(defmethod initialize-instance :after ((action action) &key lanes &allow-other-keys)
+  (when lanes
+    (setf (slot-value action '%lanes)
+          (reduce #'logior lanes :key (lambda (i) (expt 2 i))))))
+
 (defun process-actions (actions)
-  (loop :for (nil . action) :in (dll:dlist-elements actions)
-        :when (finished-p action)
-          :do (on-action-finish action)
-        :unless (finished-p action)
-          :do (on-action-update action)
-        :when (blocking-p action)
-          :do (return)))
+  (loop :with blocked-lanes := 0
+        :for (nil . action) :in (dll:dlist-elements actions)
+        :for lanes := (lanes action)
+        :do (when (zerop (logand blocked-lanes lanes))
+              (if (finished-p action)
+                  (on-action-finish action)
+                  (on-action-update action))
+              (when (blocking-p action)))))
 
 ;;; Action event hooks
 
