@@ -83,7 +83,8 @@
               (if (finished-p action)
                   (on-action-finish action)
                   (on-action-update action))
-              (when (blocking-p action)))))
+              (when (blocking-p action)
+                (setf blocked-lanes (logior lanes blocked-lanes))))))
 
 ;;; Action event hooks
 
